@@ -17,7 +17,7 @@ services:
     depends_on:
       - pop-backend
     ports:
-      - "8080:80"
+      - "${POP_HOST_PORT:-8080}:80"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     healthcheck:

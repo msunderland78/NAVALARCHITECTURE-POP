@@ -22,7 +22,25 @@ Run with Docker Compose from `POP-NEW/app`:
 docker-compose up --build
 ```
 
-Open `http://127.0.0.1:8080/`.
+The default host port is `8080`. Open the application at:
+
+```text
+http://SERVER_IP:8080/
+```
+
+To use a different host port, set `POP_HOST_PORT` before starting Compose:
+
+```sh
+POP_HOST_PORT=9090 docker-compose up --build
+```
+
+Then open:
+
+```text
+http://SERVER_IP:9090/
+```
+
+For a persistent local setting, copy `.env.example` to `.env` and edit `POP_HOST_PORT`. Docker Compose reads `.env` automatically from this directory.
 
 Check container status and health:
 

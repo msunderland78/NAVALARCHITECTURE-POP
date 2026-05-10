@@ -9,3 +9,5 @@ Run from `POP-NEW/app`:
 ```sh
 docker-compose up --build
 ```
+
+The host port is selected by `POP_HOST_PORT` in `docker-compose.yml`. If it is not set, Compose publishes NGINX on port `8080`.

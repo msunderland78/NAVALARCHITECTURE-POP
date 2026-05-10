@@ -21,7 +21,7 @@ class DeploymentFileTests(unittest.TestCase):
 
         self.assertIn("pop-backend", compose)
         self.assertIn("nginx:1.27-alpine", compose)
-        self.assertIn("8080:80", compose)
+        self.assertIn("${POP_HOST_PORT:-8080}:80", compose)
         self.assertIn("healthcheck", compose)
         self.assertIn("/health", compose)
 
@@ -29,8 +29,20 @@ class DeploymentFileTests(unittest.TestCase):
         readme = (ROOT / "app/README.md").read_text()
 
         self.assertIn("docker-compose up --build", readme)
+        self.assertIn("POP_HOST_PORT", readme)
+        self.assertIn("SERVER_IP", readme)
         self.assertIn("docker-compose ps", readme)
         self.assertIn("usermod -aG docker", readme)
+
+    def test_env_example_documents_public_port(self):
+        env_example = (ROOT / "app/.env.example").read_text()
+
+        self.assertIn("POP_HOST_PORT=8080", env_example)
+
+    def test_local_env_file_is_ignored(self):
+        gitignore = (ROOT.parent / ".gitignore").read_text()
+
+        self.assertIn("POP-NEW/app/.env", gitignore)
 
     def test_nginx_proxies_to_backend(self):
         config = (ROOT / "app/nginx/nginx.conf").read_text()
