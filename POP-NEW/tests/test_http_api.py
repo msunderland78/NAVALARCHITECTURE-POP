@@ -2,8 +2,13 @@ import json
 import threading
 import unittest
 import urllib.request
+from pathlib import Path
 
 from pop_http import build_server, sample_case
+
+
+ROOT = Path(__file__).resolve().parents[1]
+PROJECT_ROOT = ROOT.parent
 
 
 class HttpApiTests(unittest.TestCase):
@@ -63,6 +68,24 @@ class HttpApiTests(unittest.TestCase):
         self.assertIn("legacyRounded", payload)
         self.assertIn("curves", payload)
         self.assertGreater(payload["legacyRounded"]["rpm"], 0)
+
+    def test_import_pop_when_available(self):
+        path = PROJECT_ROOT / "POP-OLD/POP1.POP"
+        if not path.exists():
+            self.skipTest("POP-OLD is not present")
+        request = urllib.request.Request(
+            f"http://127.0.0.1:{self.port}/api/import-pop",
+            data=path.read_bytes(),
+            headers={"Content-Type": "application/octet-stream"},
+            method="POST"
+        )
+
+        with urllib.request.urlopen(request, timeout=10) as response:
+            payload = json.loads(response.read())
+
+        self.assertEqual(payload["input"]["projectName"], "NA 470 Coursepack Example")
+        self.assertEqual(payload["input"]["bladeCount"], 4)
+        self.assertEqual(payload["input"]["requiredThrustKn"], 444.8221)
 
 
 if __name__ == "__main__":

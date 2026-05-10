@@ -13,6 +13,7 @@ class FrontendStaticTests(unittest.TestCase):
         self.assertIn('id="curve-chart"', html)
         self.assertIn('data-mode-field="evaluation"', html)
         self.assertIn('data-mode-field="optimization"', html)
+        self.assertIn('id="legacy-pop-file"', html)
         self.assertIn("Propeller Optimization Program", html)
 
     def test_frontend_does_not_auto_run(self):
@@ -21,6 +22,12 @@ class FrontendStaticTests(unittest.TestCase):
         self.assertNotIn("dispatchEvent", script)
         self.assertNotIn("setInterval", script)
         self.assertNotIn("location.reload", script)
+
+    def test_frontend_posts_legacy_import(self):
+        script = (ROOT / "app/frontend/app.js").read_text()
+
+        self.assertIn("/api/import-pop", script)
+        self.assertIn("application/octet-stream", script)
 
 
 if __name__ == "__main__":

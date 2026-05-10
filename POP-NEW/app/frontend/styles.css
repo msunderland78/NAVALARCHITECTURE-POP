@@ -128,6 +128,32 @@ button {
   cursor: pointer;
 }
 
+.input-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.file-button {
+  min-height: 34px;
+  padding: 0 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #bcc8d2;
+  border-radius: 6px;
+  background: #f7f9fb;
+  color: #17202a;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.file-button input {
+  display: none;
+}
+
 button.primary {
   width: 100%;
   background: #236f7b;

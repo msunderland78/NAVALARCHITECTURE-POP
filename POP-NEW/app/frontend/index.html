@@ -19,7 +19,10 @@
       <section class="input-panel">
         <div class="panel-head">
           <h2>Input</h2>
-          <button id="load-sample" type="button">Load Sample</button>
+          <div class="input-actions">
+            <label class="file-button">Import .POP<input id="legacy-pop-file" type="file" accept=".pop,.POP"></label>
+            <button id="load-sample" type="button">Load Sample</button>
+          </div>
         </div>
 
         <form id="pop-form">

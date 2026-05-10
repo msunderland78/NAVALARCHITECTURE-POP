@@ -15,6 +15,27 @@ document.querySelector("#load-sample").addEventListener("click", async () => {
   fillForm(data);
 });
 
+document.querySelector("#legacy-pop-file").addEventListener("change", async event => {
+  const file = event.target.files[0];
+  if (!file) return;
+  statusNode.textContent = "Importing";
+  try {
+    const response = await fetch("/api/import-pop", {
+      method: "POST",
+      headers: {"Content-Type": "application/octet-stream"},
+      body: await file.arrayBuffer()
+    });
+    const payload = await response.json();
+    fillForm(payload.input);
+    statusNode.textContent = "Imported";
+  } catch (error) {
+    statusNode.textContent = "Import Failed";
+    jsonOutput.textContent = String(error);
+  } finally {
+    event.target.value = "";
+  }
+});
+
 document.querySelector("#copy-json").addEventListener("click", async () => {
   if (!latestPayload) return;
   await navigator.clipboard.writeText(JSON.stringify(latestPayload, null, 2));

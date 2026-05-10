@@ -3,7 +3,7 @@ import json
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-from pop_core import PopInput, result_payload, run_case
+from pop_core import PopInput, parse_legacy_input, read_legacy_pop_text_bytes, result_payload, run_case
 
 
 FRONTEND_DIR = Path(__file__).resolve().parents[1] / "frontend"
@@ -29,14 +29,31 @@ class PopHttpHandler(BaseHTTPRequestHandler):
         self._json(404, {"error": "not_found"})
 
     def do_POST(self):
-        if self.path != "/api/run":
+        if self.path == "/api/run":
+            self._run_case()
+            return
+        if self.path == "/api/import-pop":
+            self._import_pop()
+            return
+        else:
             self._json(404, {"error": "not_found"})
             return
+
+    def _run_case(self):
         length = int(self.headers.get("Content-Length", "0"))
         body = self.rfile.read(length)
         data = json.loads(body.decode("utf-8"))
         case = PopInput.from_dict(data)
         self._json(200, result_payload(case, run_case(case)))
+
+    def _import_pop(self):
+        length = int(self.headers.get("Content-Length", "0"))
+        body = self.rfile.read(length)
+        text = read_legacy_pop_text_bytes(body)
+        self._json(200, {
+            "input": parse_legacy_input(text),
+            "warnings": []
+        })
 
     def log_message(self, format, *args):
         return

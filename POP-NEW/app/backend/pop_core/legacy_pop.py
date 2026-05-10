@@ -21,6 +21,11 @@ def read_legacy_pop_text(path: Path) -> str:
     return extract_printable_text(cfb.read_stream("Contents"))
 
 
+def read_legacy_pop_text_bytes(data: bytes) -> str:
+    cfb = CfbFile(data)
+    return extract_printable_text(cfb.read_stream("Contents"))
+
+
 def parse_legacy_input(text: str) -> dict:
     return {
         "projectName": _project_name(text),
@@ -28,22 +33,22 @@ def parse_legacy_input(text: str) -> dict:
         "mode": "optimization" if "Optimization Run" in text else "evaluation",
         "series": "wageningen_b",
         "pitchType": "fixed" if "Fixed-Pitch Propeller" in text else "controllable",
-        "bladeCount": int(_number_after(text, "Number of Propeller Blades")),
-        "initialExpandedAreaRatio": _number_after(text, "Initial Expanded Area Ratio Ae/Ao"),
-        "initialPitchDiameterRatio": _number_after(text, "Initial Pitch Diameter Ratio P/Dp"),
-        "initialDiameterMeters": _number_after(text, "Initial Propeller Diameter Dp"),
-        "diameterMinMeters": _number_after(text, "Minimum Diameter Constriant Dpmin"),
-        "diameterMaxMeters": _number_after_any(text, ["Maximum Diameter Constriant Dpmax", "Maximum Diameter Constriant Dpmin"]),
-        "requiredThrustKn": _number_after(text, "Required Propeller Thrust"),
-        "shipSpeedKnots": _number_after(text, "Ship Speed Vk"),
-        "wakeFraction": _number_after(text, "Wake Fraction w"),
-        "shaftDepthMeters": _number_after(text, "Depth of Shaft below Waterline"),
+        "bladeCount": int(_number_after(text, "Number of Propeller Blades", first=True)),
+        "initialExpandedAreaRatio": _number_after(text, "Initial Expanded Area Ratio Ae/Ao", first=True),
+        "initialPitchDiameterRatio": _number_after(text, "Initial Pitch Diameter Ratio P/Dp", first=True),
+        "initialDiameterMeters": _number_after(text, "Initial Propeller Diameter Dp", first=True),
+        "diameterMinMeters": _number_after(text, "Minimum Diameter Constriant Dpmin", first=True),
+        "diameterMaxMeters": _number_after_any(text, ["Maximum Diameter Constriant Dpmax", "Maximum Diameter Constriant Dpmin"], first=True),
+        "requiredThrustKn": _number_after(text, "Required Propeller Thrust", first=True),
+        "shipSpeedKnots": _number_after(text, "Ship Speed Vk", first=True),
+        "wakeFraction": _number_after(text, "Wake Fraction w", first=True),
+        "shaftDepthMeters": _number_after(text, "Depth of Shaft below Waterline", first=True),
         "water": {
             "kind": _water_kind(text),
-            "densityKgM3": _number_after(text, "Water Density Rho"),
-            "kinematicViscosityM2S": _number_after(text, "Kinematic Viscosity Nu")
+            "densityKgM3": _number_after(text, "Water Density Rho", first=True),
+            "kinematicViscosityM2S": _number_after(text, "Kinematic Viscosity Nu", first=True)
         },
-        "burrillBackCavitationPercent": int(_number_after(text, "Burrill Back Cavitation Constraint"))
+        "burrillBackCavitationPercent": int(_number_after(text, "Burrill Back Cavitation Constraint", first=True))
     }
 
 
@@ -88,24 +93,25 @@ def _water_kind(text: str) -> str:
     return "custom"
 
 
-def _number_after_any(text: str, labels: list[str]) -> float:
+def _number_after_any(text: str, labels: list[str], first: bool = False) -> float:
     for label in labels:
         try:
-            return _number_after(text, label)
+            return _number_after(text, label, first=first)
         except ValueError:
             pass
     raise ValueError(f"None of these labels found: {labels}")
 
 
-def _number_after(text: str, label: str) -> float:
+def _number_after(text: str, label: str, first: bool = False) -> float:
     pattern = re.escape(label) + r"[^\n\r=]*=\s*([-+]?\d+(?:\.\d+)?(?:[eE][-+]?\d+)?)"
     matches = re.findall(pattern, text)
     if not matches:
         raise ValueError(f"{label} not found")
-    return float(matches[-1])
+    return float(matches[0] if first else matches[-1])
 
 
 def _clean_value(value: str) -> str:
     value = value.strip()
-    value = re.split(r"\s{2,}|[0-9]?Department|[0-9]?Propeller|[0-9]?Run Identification", value)[0]
+    value = re.split(r"\s{2,}|\d? Department|\d? Propeller|\d? Run Identification|[0-9]?Department|[0-9]?Propeller|[0-9]?Run Identification", value)[0]
+    value = re.sub(r"(?<=[A-Za-z)])\d+$", "", value)
     return value.strip()
