@@ -63,6 +63,12 @@ class FrontendStaticTests(unittest.TestCase):
         self.assertIn("Advance Speed", script)
         self.assertIn("Cavitation Limit", script)
 
+    def test_frontend_escapes_rendered_table_values(self):
+        script = (ROOT / "app/frontend/app.js").read_text()
+
+        self.assertIn("resultTable.innerHTML = rows.map(([name, value]) => `<tr><td>${escapeHtml(name)}</td><td>${escapeHtml(value)}</td></tr>`).join(\"\");", script)
+        self.assertIn("verificationTable.innerHTML = rows.map(([name, value]) => `<tr><td>${escapeHtml(name)}</td><td>${escapeHtml(value)}</td></tr>`).join(\"\");", script)
+
     def test_frontend_applies_water_presets(self):
         script = (ROOT / "app/frontend/app.js").read_text()
 

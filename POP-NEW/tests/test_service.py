@@ -38,6 +38,14 @@ class ServiceTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "initialDiameterMeters"):
             run_case(case)
 
+    def test_non_numeric_input_fails_before_calculation(self):
+        data = json.loads((ROOT / "tests/fixtures/na470-coursepack.input.json").read_text())
+        data["mode"] = "evaluation"
+        data["initialDiameterMeters"] = "<script>alert(1)</script>"
+
+        with self.assertRaisesRegex(ValueError, "initialDiameterMeters must be a number"):
+            PopInput.from_dict(data)
+
     def test_controllable_pitch_curve_uses_reduced_efficiency(self):
         fixed_data = json.loads((ROOT / "tests/fixtures/na470-coursepack.input.json").read_text())
         fixed_data["mode"] = "evaluation"

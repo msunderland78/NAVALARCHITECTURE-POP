@@ -1,5 +1,6 @@
 import argparse
 import json
+from json import JSONDecodeError
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
@@ -7,11 +8,22 @@ from pop_core import PopInput, parse_legacy_input, read_legacy_pop_text_bytes, r
 
 
 FRONTEND_DIR = Path(__file__).resolve().parents[1] / "frontend"
+MAX_RUN_BYTES = 16384
+MAX_IMPORT_BYTES = 1048576
 STATIC_TYPES = {
     ".html": "text/html; charset=utf-8",
     ".css": "text/css; charset=utf-8",
     ".js": "application/javascript; charset=utf-8"
 }
+SECURITY_HEADERS = {
+    "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'",
+    "Referrer-Policy": "no-referrer",
+    "X-Content-Type-Options": "nosniff"
+}
+
+
+class RequestTooLarge(ValueError):
+    pass
 
 
 class PopHttpHandler(BaseHTTPRequestHandler):
@@ -40,36 +52,60 @@ class PopHttpHandler(BaseHTTPRequestHandler):
             return
 
     def _run_case(self):
-        length = int(self.headers.get("Content-Length", "0"))
-        body = self.rfile.read(length)
-        data = json.loads(body.decode("utf-8"))
-        case = PopInput.from_dict(data)
         try:
+            data = self._json_body(MAX_RUN_BYTES)
+            case = PopInput.from_dict(data)
             result = run_case(case)
+        except RequestTooLarge as error:
+            self._json(413, {"error": "request_too_large", "message": str(error)})
+            return
         except ValueError as error:
             self._json(400, {"error": "invalid_input", "message": str(error)})
             return
         self._json(200, result_payload(case, result))
 
     def _import_pop(self):
-        length = int(self.headers.get("Content-Length", "0"))
-        body = self.rfile.read(length)
-        text = read_legacy_pop_text_bytes(body)
-        self._json(200, {
-            "input": parse_legacy_input(text),
-            "warnings": []
-        })
+        try:
+            body = self._body(MAX_IMPORT_BYTES)
+            text = read_legacy_pop_text_bytes(body)
+            self._json(200, {
+                "input": parse_legacy_input(text),
+                "warnings": []
+            })
+        except RequestTooLarge as error:
+            self._json(413, {"error": "request_too_large", "message": str(error)})
+        except ValueError as error:
+            self._json(400, {"error": "invalid_input", "message": str(error)})
 
     def log_message(self, format, *args):
         return
 
     def _json(self, status: int, payload: dict):
-        data = json.dumps(payload, sort_keys=True).encode("utf-8")
+        data = json.dumps(payload, allow_nan=False, sort_keys=True).encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", "application/json")
+        self._security_headers()
         self.send_header("Content-Length", str(len(data)))
         self.end_headers()
         self.wfile.write(data)
+
+    def _json_body(self, max_bytes: int):
+        body = self._body(max_bytes)
+        try:
+            return json.loads(body.decode("utf-8"), parse_constant=_reject_json_constant)
+        except (UnicodeDecodeError, JSONDecodeError, ValueError) as error:
+            raise ValueError("request body must be valid JSON") from error
+
+    def _body(self, max_bytes: int) -> bytes:
+        try:
+            length = int(self.headers.get("Content-Length", "0"))
+        except ValueError as error:
+            raise ValueError("Content-Length must be an integer") from error
+        if length < 0:
+            raise ValueError("Content-Length must not be negative")
+        if length > max_bytes:
+            raise RequestTooLarge(f"request body must be {max_bytes} bytes or fewer")
+        return self.rfile.read(length)
 
     def _static(self) -> bool:
         path = self.path.split("?", 1)[0]
@@ -86,10 +122,19 @@ class PopHttpHandler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header("Content-Type", STATIC_TYPES.get(target.suffix, "application/octet-stream"))
         self.send_header("Cache-Control", "no-store")
+        self._security_headers()
         self.send_header("Content-Length", str(len(data)))
         self.end_headers()
         self.wfile.write(data)
         return True
+
+    def _security_headers(self):
+        for name, value in SECURITY_HEADERS.items():
+            self.send_header(name, value)
+
+
+def _reject_json_constant(value: str):
+    raise ValueError(f"{value} is not valid JSON")
 
 
 def sample_case() -> dict:

@@ -179,7 +179,7 @@ function renderResults(payload) {
     ["Sigma", rounded.cavitationNumber],
     ["Evaluations", rounded.optimizationSearchEvaluationCount ?? "-"]
   ];
-  resultTable.innerHTML = rows.map(([name, value]) => `<tr><td>${name}</td><td>${value}</td></tr>`).join("");
+  resultTable.innerHTML = rows.map(([name, value]) => `<tr><td>${escapeHtml(name)}</td><td>${escapeHtml(value)}</td></tr>`).join("");
   jsonOutput.textContent = JSON.stringify(payload, null, 2);
   renderPropeller(rounded, Number(form.elements.bladeCount.value));
   renderCurveChart(payload.curves, payload.mode);
