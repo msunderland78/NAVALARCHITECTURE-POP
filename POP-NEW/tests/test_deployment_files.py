@@ -38,6 +38,17 @@ class DeploymentFileTests(unittest.TestCase):
         self.assertIn("docker-compose ps", readme)
         self.assertIn("usermod -aG docker", readme)
 
+    def test_top_level_readme_describes_public_pop_release(self):
+        readme = (ROOT.parent / "README.md").read_text()
+
+        self.assertIn("Propeller Optimization Program (POP) for the Web", readme)
+        self.assertIn("Version 1.0, May 2026", readme)
+        self.assertIn("Wageningen B-Series", readme)
+        self.assertIn("Advance coefficient", readme)
+        self.assertIn("docker-compose up --build", readme)
+        self.assertIn("POP_HOST_PORT", readme)
+        self.assertIn("HTTPS", readme)
+
     def test_env_example_documents_public_port(self):
         env_example = (ROOT / "app/.env.example").read_text()
 
