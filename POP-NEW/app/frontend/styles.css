@@ -301,3 +301,33 @@ pre {
     grid-template-columns: 1fr;
   }
 }
+
+@media print {
+  body {
+    background: #ffffff;
+  }
+
+  .topbar,
+  .input-panel,
+  .result-actions,
+  #json-output {
+    display: none;
+  }
+
+  .workspace,
+  .results-grid {
+    display: block;
+    padding: 0;
+  }
+
+  .results-panel,
+  .chart-wrap {
+    border-color: #9ca8b2;
+    border-radius: 0;
+  }
+
+  .chart-wrap {
+    break-inside: avoid;
+    margin-top: 12px;
+  }
+}

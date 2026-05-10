@@ -16,6 +16,7 @@ class FrontendStaticTests(unittest.TestCase):
         self.assertIn('id="legacy-pop-file"', html)
         self.assertIn('id="download-json"', html)
         self.assertIn('id="download-csv"', html)
+        self.assertIn('id="print-report"', html)
         self.assertIn('id="verification-table"', html)
         self.assertIn("Propeller Optimization Program", html)
 
@@ -38,6 +39,13 @@ class FrontendStaticTests(unittest.TestCase):
         self.assertIn("payloadToCsv", script)
         self.assertIn("downloadText", script)
         self.assertIn(".csv", script)
+        self.assertIn("window.print", script)
+
+    def test_frontend_has_print_styles(self):
+        styles = (ROOT / "app/frontend/styles.css").read_text()
+
+        self.assertIn("@media print", styles)
+        self.assertIn("#json-output", styles)
 
     def test_frontend_checks_http_error_payloads(self):
         script = (ROOT / "app/frontend/app.js").read_text()

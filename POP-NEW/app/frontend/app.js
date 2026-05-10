@@ -55,6 +55,12 @@ document.querySelector("#download-csv").addEventListener("click", () => {
   statusNode.textContent = "CSV Exported";
 });
 
+document.querySelector("#print-report").addEventListener("click", () => {
+  if (!latestPayload) return;
+  statusNode.textContent = "PDF Ready";
+  window.print();
+});
+
 form.addEventListener("submit", async event => {
   event.preventDefault();
   runButton.disabled = true;
