@@ -33,3 +33,9 @@ The implemented coefficient table is the standard 39-term `KT` and 47-term `KQ` 
 The current implementation evaluates the base `Rn = 2e6` polynomials and applies the published Reynolds-number correction equations for `KT` and `KQ`.
 
 The recovered POP golden output has `RN = 0.368E+08`, and the correction is required for the `KQ` value to match the legacy result.
+
+## POP Compatibility Notes
+
+The legacy POP output reports sectional Reynolds number `RN`, not a diameter-based Reynolds number. The current implementation estimates `RN` from advance speed, 0.75-radius tangential speed, and a representative section chord proportional to `Ae/Ao * D / Z`. The proportionality factor is calibrated from the recovered NA 470 case and should be revisited when additional legacy runs are available.
+
+The optimizer also includes an interim Burrill back-cavitation loading constraint. The 5 percent curve is calibrated to make the recovered NA 470 design active at `Ae/Ao = 0.6293`. This is sufficient to reproduce the known sample but should be replaced with a fully sourced Burrill chart implementation when more reference data is available.
