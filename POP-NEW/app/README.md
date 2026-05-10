@@ -24,6 +24,12 @@ docker-compose up --build
 
 Open `http://127.0.0.1:8080/`.
 
+Check container status and health:
+
+```sh
+docker-compose ps
+```
+
 If the host has Docker Compose v2, this equivalent command also works:
 
 ```sh

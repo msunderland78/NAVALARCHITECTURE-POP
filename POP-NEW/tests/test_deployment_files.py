@@ -12,6 +12,8 @@ class DeploymentFileTests(unittest.TestCase):
         self.assertIn("python:3.12-slim", dockerfile)
         self.assertIn("COPY backend", dockerfile)
         self.assertIn("COPY frontend", dockerfile)
+        self.assertIn("HEALTHCHECK", dockerfile)
+        self.assertIn("/health", dockerfile)
         self.assertNotIn("POP-OLD", dockerfile)
 
     def test_compose_uses_nginx_and_backend(self):
@@ -20,11 +22,14 @@ class DeploymentFileTests(unittest.TestCase):
         self.assertIn("pop-backend", compose)
         self.assertIn("nginx:1.27-alpine", compose)
         self.assertIn("8080:80", compose)
+        self.assertIn("healthcheck", compose)
+        self.assertIn("/health", compose)
 
     def test_docs_include_standalone_compose_command(self):
         readme = (ROOT / "app/README.md").read_text()
 
         self.assertIn("docker-compose up --build", readme)
+        self.assertIn("docker-compose ps", readme)
         self.assertIn("usermod -aG docker", readme)
 
     def test_nginx_proxies_to_backend(self):
