@@ -14,6 +14,8 @@ class FrontendStaticTests(unittest.TestCase):
         self.assertIn('data-mode-field="evaluation"', html)
         self.assertIn('data-mode-field="optimization"', html)
         self.assertIn('id="legacy-pop-file"', html)
+        self.assertIn('id="download-json"', html)
+        self.assertIn('id="download-csv"', html)
         self.assertIn("Propeller Optimization Program", html)
 
     def test_frontend_does_not_auto_run(self):
@@ -28,6 +30,13 @@ class FrontendStaticTests(unittest.TestCase):
 
         self.assertIn("/api/import-pop", script)
         self.assertIn("application/octet-stream", script)
+
+    def test_frontend_exports_results(self):
+        script = (ROOT / "app/frontend/app.js").read_text()
+
+        self.assertIn("payloadToCsv", script)
+        self.assertIn("downloadText", script)
+        self.assertIn(".csv", script)
 
 
 if __name__ == "__main__":

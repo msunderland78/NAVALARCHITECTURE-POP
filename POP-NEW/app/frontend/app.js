@@ -42,6 +42,18 @@ document.querySelector("#copy-json").addEventListener("click", async () => {
   statusNode.textContent = "Copied";
 });
 
+document.querySelector("#download-json").addEventListener("click", () => {
+  if (!latestPayload) return;
+  downloadText(exportBaseName(latestPayload) + ".json", "application/json", JSON.stringify(latestPayload, null, 2));
+  statusNode.textContent = "JSON Exported";
+});
+
+document.querySelector("#download-csv").addEventListener("click", () => {
+  if (!latestPayload) return;
+  downloadText(exportBaseName(latestPayload) + ".csv", "text/csv", payloadToCsv(latestPayload));
+  statusNode.textContent = "CSV Exported";
+});
+
 form.addEventListener("submit", async event => {
   event.preventDefault();
   runButton.disabled = true;
@@ -266,6 +278,44 @@ function emptyCurveChart() {
 
 function number(data, key) {
   return Number(data.get(key));
+}
+
+function payloadToCsv(payload) {
+  const rows = [
+    ["section", "name", "value"],
+    ...Object.entries(payload.legacyRounded).map(([name, value]) => ["result", name, value]),
+    [],
+    ["curve", "j", "kt", "kq", "eta"],
+    ...payload.curves.openWater.map(point => ["openWater", point.j, point.kt, point.kq, point.eta])
+  ];
+  return rows.map(row => row.map(csvCell).join(",")).join("\n") + "\n";
+}
+
+function csvCell(value) {
+  if (value === null || value === undefined) return "";
+  const text = String(value);
+  if (/[",\n]/.test(text)) return `"${text.replaceAll('"', '""')}"`;
+  return text;
+}
+
+function downloadText(filename, type, text) {
+  const blob = new Blob([text], {type});
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+function exportBaseName(payload) {
+  return `${slug(payload.projectName)}-${slug(payload.runId)}-${payload.mode}`;
+}
+
+function slug(value) {
+  return String(value || "pop").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "pop";
 }
 
 function updateModeFields() {

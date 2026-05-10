@@ -128,7 +128,8 @@ button {
   cursor: pointer;
 }
 
-.input-actions {
+.input-actions,
+.result-actions {
   display: flex;
   gap: 8px;
   align-items: center;
