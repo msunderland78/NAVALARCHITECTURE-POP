@@ -19,7 +19,19 @@ PYTHONPATH=POP-NEW/app/backend python3 POP-NEW/app/backend/pop_http.py --host 12
 Run with Docker Compose from `POP-NEW/app`:
 
 ```sh
-docker compose up --build
+docker-compose up --build
 ```
 
 Open `http://127.0.0.1:8080/`.
+
+If the host has Docker Compose v2, this equivalent command also works:
+
+```sh
+docker compose up --build
+```
+
+If Docker reports permission denied for `/var/run/docker.sock`, add the user to the `docker` group and start a new login session:
+
+```sh
+sudo usermod -aG docker $USER
+```

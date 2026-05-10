@@ -21,6 +21,12 @@ class DeploymentFileTests(unittest.TestCase):
         self.assertIn("nginx:1.27-alpine", compose)
         self.assertIn("8080:80", compose)
 
+    def test_docs_include_standalone_compose_command(self):
+        readme = (ROOT / "app/README.md").read_text()
+
+        self.assertIn("docker-compose up --build", readme)
+        self.assertIn("usermod -aG docker", readme)
+
     def test_nginx_proxies_to_backend(self):
         config = (ROOT / "app/nginx/nginx.conf").read_text()
 
