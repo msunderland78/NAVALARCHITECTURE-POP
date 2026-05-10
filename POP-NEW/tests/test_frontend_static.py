@@ -45,7 +45,10 @@ class FrontendStaticTests(unittest.TestCase):
         styles = (ROOT / "app/frontend/styles.css").read_text()
 
         self.assertIn("@media print", styles)
+        self.assertIn("size: Letter portrait", styles)
+        self.assertIn("margin: 1in", styles)
         self.assertIn("#json-output", styles)
+        self.assertIn("max-width: 6.5in", styles)
 
     def test_frontend_checks_http_error_payloads(self):
         script = (ROOT / "app/frontend/app.js").read_text()
