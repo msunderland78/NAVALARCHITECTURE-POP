@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>POP</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <h1>Propeller Optimization Program</h1>
+        <p>Wageningen B-series preliminary design</p>
+      </div>
+      <div class="run-status" id="status">Ready</div>
+    </header>
+
+    <main class="workspace">
+      <section class="input-panel">
+        <div class="panel-head">
+          <h2>Input</h2>
+          <button id="load-sample" type="button">Load Sample</button>
+        </div>
+
+        <form id="pop-form">
+          <fieldset>
+            <legend>Project</legend>
+            <label>Project Name<input name="projectName" value="NA 470 Coursepack Example"></label>
+            <label>Run ID<input name="runId" value="test 1.0"></label>
+            <label>Mode<select name="mode"><option value="optimization">Optimization</option><option value="evaluation">Evaluation</option></select></label>
+            <label>Pitch Type<select name="pitchType"><option value="fixed">Fixed</option><option value="controllable">Controllable</option></select></label>
+          </fieldset>
+
+          <fieldset>
+            <legend>Propeller</legend>
+            <label>Blades<input name="bladeCount" type="number" value="4" min="3" max="7" step="1"></label>
+            <label>Ae/Ao<input name="initialExpandedAreaRatio" type="number" value="0.75" min="0.3" max="1.05" step="0.001"></label>
+            <label>P/D<input name="initialPitchDiameterRatio" type="number" value="1.0" min="0.5" max="1.4" step="0.001"></label>
+            <label>D Initial (m)<input name="initialDiameterMeters" type="number" value="4.57" min="0.1" step="0.01"></label>
+            <label>D Min (m)<input name="diameterMinMeters" type="number" value="2.0" min="0.1" step="0.01"></label>
+            <label>D Max (m)<input name="diameterMaxMeters" type="number" value="4.6" min="0.1" step="0.01"></label>
+          </fieldset>
+
+          <fieldset>
+            <legend>Operating</legend>
+            <label>Required Thrust (kN)<input name="requiredThrustKn" type="number" value="444.8221" min="0" step="0.0001"></label>
+            <label>Ship Speed (kn)<input name="shipSpeedKnots" type="number" value="11.84" min="0" step="0.01"></label>
+            <label>Wake Fraction<input name="wakeFraction" type="number" value="0" min="0" max="0.9" step="0.001"></label>
+            <label>Shaft Depth (m)<input name="shaftDepthMeters" type="number" value="4.39" min="0" step="0.01"></label>
+            <label>Cavitation (%)<select name="burrillBackCavitationPercent"><option value="5">5</option><option value="10">10</option></select></label>
+          </fieldset>
+
+          <fieldset>
+            <legend>Water</legend>
+            <label>Preset<select name="waterKind"><option value="salt_15c">Salt 15C</option><option value="fresh_15c">Fresh 15C</option><option value="custom">Custom</option></select></label>
+            <label>Density (kg/m3)<input name="densityKgM3" type="number" value="1025.87" min="0" step="0.01"></label>
+            <label>Viscosity (m2/s)<input name="kinematicViscosityM2S" type="number" value="0.00000118831" min="0" step="0.00000000001"></label>
+          </fieldset>
+
+          <button class="primary" type="submit">Run</button>
+        </form>
+      </section>
+
+      <section class="results-panel">
+        <div class="panel-head">
+          <h2>Results</h2>
+          <button id="copy-json" type="button">Copy JSON</button>
+        </div>
+        <div class="results-grid">
+          <table>
+            <tbody id="result-table"></tbody>
+          </table>
+          <div class="chart-wrap">
+            <svg id="result-chart" viewBox="0 0 640 300" role="img" aria-label="Propeller coefficients chart"></svg>
+          </div>
+        </div>
+        <pre id="json-output"></pre>
+      </section>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

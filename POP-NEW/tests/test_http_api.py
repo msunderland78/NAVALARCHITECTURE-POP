@@ -26,6 +26,13 @@ class HttpApiTests(unittest.TestCase):
             self.assertEqual(response.status, 200)
             self.assertEqual(json.loads(response.read()), {"status": "ok"})
 
+    def test_serves_frontend(self):
+        with urllib.request.urlopen(f"http://127.0.0.1:{self.port}/", timeout=5) as response:
+            body = response.read().decode("utf-8")
+
+        self.assertIn("Propeller Optimization Program", body)
+        self.assertIn("/app.js", body)
+
     def test_sample(self):
         with urllib.request.urlopen(f"http://127.0.0.1:{self.port}/api/sample", timeout=5) as response:
             payload = json.loads(response.read())

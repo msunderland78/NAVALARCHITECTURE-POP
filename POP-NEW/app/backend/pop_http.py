@@ -1,8 +1,17 @@
 import argparse
 import json
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 
 from pop_core import PopInput, result_payload, run_case
+
+
+FRONTEND_DIR = Path(__file__).resolve().parents[1] / "frontend"
+STATIC_TYPES = {
+    ".html": "text/html; charset=utf-8",
+    ".css": "text/css; charset=utf-8",
+    ".js": "application/javascript; charset=utf-8"
+}
 
 
 class PopHttpHandler(BaseHTTPRequestHandler):
@@ -14,6 +23,8 @@ class PopHttpHandler(BaseHTTPRequestHandler):
             return
         if self.path == "/api/sample":
             self._json(200, sample_case())
+            return
+        if self._static():
             return
         self._json(404, {"error": "not_found"})
 
@@ -37,6 +48,25 @@ class PopHttpHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(len(data)))
         self.end_headers()
         self.wfile.write(data)
+
+    def _static(self) -> bool:
+        path = self.path.split("?", 1)[0]
+        if path == "/":
+            filename = "index.html"
+        else:
+            filename = path.lstrip("/")
+        target = (FRONTEND_DIR / filename).resolve()
+        if FRONTEND_DIR not in target.parents and target != FRONTEND_DIR:
+            return False
+        if not target.is_file():
+            return False
+        data = target.read_bytes()
+        self.send_response(200)
+        self.send_header("Content-Type", STATIC_TYPES.get(target.suffix, "application/octet-stream"))
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+        return True
 
 
 def sample_case() -> dict:
