@@ -136,6 +136,26 @@ button.primary {
   font-weight: 700;
 }
 
+button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.mode-hidden {
+  display: none;
+}
+
+.result-mode {
+  min-width: 128px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #e8f2f4;
+  color: #236f7b;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+}
+
 .results-grid {
   display: grid;
   grid-template-columns: minmax(260px, 360px) minmax(320px, 1fr);

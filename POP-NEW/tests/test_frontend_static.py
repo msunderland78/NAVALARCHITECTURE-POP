@@ -11,6 +11,8 @@ class FrontendStaticTests(unittest.TestCase):
 
         self.assertIn('id="propeller-diagram"', html)
         self.assertIn('id="curve-chart"', html)
+        self.assertIn('data-mode-field="evaluation"', html)
+        self.assertIn('data-mode-field="optimization"', html)
         self.assertIn("Propeller Optimization Program", html)
 
     def test_frontend_does_not_auto_run(self):

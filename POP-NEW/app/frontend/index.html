@@ -27,18 +27,18 @@
             <legend>Project</legend>
             <label>Project Name<input name="projectName" value="NA 470 Coursepack Example"></label>
             <label>Run ID<input name="runId" value="test 1.0"></label>
-            <label>Mode<select name="mode"><option value="evaluation">Evaluation</option><option value="optimization">Optimization</option></select></label>
+            <label>Mode<select name="mode" id="mode-select"><option value="evaluation">Evaluation</option><option value="optimization">Optimization</option></select></label>
             <label>Pitch Type<select name="pitchType"><option value="fixed">Fixed</option><option value="controllable">Controllable</option></select></label>
           </fieldset>
 
           <fieldset>
             <legend>Propeller</legend>
             <label>Blades<input name="bladeCount" type="number" value="4" min="3" max="7" step="1"></label>
-            <label>Ae/Ao<input name="initialExpandedAreaRatio" type="number" value="0.75" min="0.3" max="1.05" step="0.001"></label>
-            <label>P/D<input name="initialPitchDiameterRatio" type="number" value="1.0" min="0.5" max="1.4" step="0.001"></label>
-            <label>D Initial (m)<input name="initialDiameterMeters" type="number" value="4.57" min="0.1" step="0.01"></label>
-            <label>D Min (m)<input name="diameterMinMeters" type="number" value="2.0" min="0.1" step="0.01"></label>
-            <label>D Max (m)<input name="diameterMaxMeters" type="number" value="4.6" min="0.1" step="0.01"></label>
+            <label data-mode-field="evaluation">Ae/Ao<input name="initialExpandedAreaRatio" type="number" value="0.75" min="0.3" max="1.05" step="0.001"></label>
+            <label data-mode-field="evaluation">P/D<input name="initialPitchDiameterRatio" type="number" value="1.0" min="0.5" max="1.4" step="0.001"></label>
+            <label data-mode-field="evaluation">D Evaluation (m)<input name="initialDiameterMeters" type="number" value="4.57" min="0.1" step="0.01"></label>
+            <label data-mode-field="optimization">D Min (m)<input name="diameterMinMeters" type="number" value="2.0" min="0.1" step="0.01"></label>
+            <label data-mode-field="optimization">D Max (m)<input name="diameterMaxMeters" type="number" value="4.6" min="0.1" step="0.01"></label>
           </fieldset>
 
           <fieldset>
@@ -57,13 +57,14 @@
             <label>Viscosity (m2/s)<input name="kinematicViscosityM2S" type="number" value="0.00000118831" min="0" step="0.00000000001"></label>
           </fieldset>
 
-          <button class="primary" type="submit">Run</button>
+          <button class="primary" id="run-button" type="submit">Run Evaluation</button>
         </form>
       </section>
 
       <section class="results-panel">
         <div class="panel-head">
           <h2>Results</h2>
+          <span class="result-mode" id="result-mode">No run</span>
           <button id="copy-json" type="button">Copy JSON</button>
         </div>
         <div class="results-grid">

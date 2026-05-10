@@ -33,6 +33,12 @@ class HttpApiTests(unittest.TestCase):
         self.assertIn("Propeller Optimization Program", body)
         self.assertIn("/app.js", body)
 
+    def test_static_assets_are_not_cached(self):
+        with urllib.request.urlopen(f"http://127.0.0.1:{self.port}/app.js", timeout=5) as response:
+            cache_control = response.headers.get("Cache-Control")
+
+        self.assertEqual(cache_control, "no-store")
+
     def test_sample(self):
         with urllib.request.urlopen(f"http://127.0.0.1:{self.port}/api/sample", timeout=5) as response:
             payload = json.loads(response.read())

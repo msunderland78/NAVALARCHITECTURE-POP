@@ -5,6 +5,8 @@ const jsonOutput = document.querySelector("#json-output");
 const chart = document.querySelector("#result-chart");
 const propellerDiagram = document.querySelector("#propeller-diagram");
 const curveChart = document.querySelector("#curve-chart");
+const runButton = document.querySelector("#run-button");
+const resultMode = document.querySelector("#result-mode");
 let latestPayload = null;
 
 document.querySelector("#load-sample").addEventListener("click", async () => {
@@ -21,6 +23,7 @@ document.querySelector("#copy-json").addEventListener("click", async () => {
 
 form.addEventListener("submit", async event => {
   event.preventDefault();
+  runButton.disabled = true;
   statusNode.textContent = "Running";
   try {
     const response = await fetch("/api/run", {
@@ -30,20 +33,25 @@ form.addEventListener("submit", async event => {
     });
     latestPayload = await response.json();
     renderResults(latestPayload);
-    statusNode.textContent = "Complete";
+    statusNode.textContent = `${labelForMode(latestPayload.mode)} Complete`;
   } catch (error) {
     statusNode.textContent = "Run Failed";
     jsonOutput.textContent = String(error);
+  } finally {
+    runButton.disabled = false;
   }
 });
 
 form.addEventListener("input", () => {
+  updateModeFields();
   renderPropeller({
     diameterMeters: Number(form.elements.initialDiameterMeters.value),
     expandedAreaRatio: Number(form.elements.initialExpandedAreaRatio.value),
     pitchDiameterRatio: Number(form.elements.initialPitchDiameterRatio.value)
   }, Number(form.elements.bladeCount.value));
 });
+
+form.elements.mode.addEventListener("change", updateModeFields);
 
 function readForm() {
   const data = new FormData(form);
@@ -92,6 +100,7 @@ function fillForm(data) {
   form.elements.kinematicViscosityM2S.value = data.water.kinematicViscosityM2S;
   form.elements.burrillBackCavitationPercent.value = data.burrillBackCavitationPercent;
   statusNode.textContent = "Sample Loaded";
+  updateModeFields();
   renderPropeller({
     diameterMeters: data.initialDiameterMeters,
     expandedAreaRatio: data.initialExpandedAreaRatio,
@@ -101,7 +110,9 @@ function fillForm(data) {
 
 function renderResults(payload) {
   const rounded = payload.legacyRounded;
+  resultMode.textContent = labelForMode(payload.mode);
   const rows = [
+    ["Run Mode", labelForMode(payload.mode)],
     ["Diameter Dp (m)", rounded.diameterMeters],
     ["Pitch P (m)", rounded.pitchMeters],
     ["P/Dp", rounded.pitchDiameterRatio],
@@ -119,7 +130,7 @@ function renderResults(payload) {
   resultTable.innerHTML = rows.map(([name, value]) => `<tr><td>${name}</td><td>${value}</td></tr>`).join("");
   jsonOutput.textContent = JSON.stringify(payload, null, 2);
   renderPropeller(rounded, Number(form.elements.bladeCount.value));
-  renderCurveChart(payload.curves);
+  renderCurveChart(payload.curves, payload.mode);
   renderChart(rounded);
 }
 
@@ -173,7 +184,7 @@ function renderChart(result) {
   chart.innerHTML = `<line x1="48" y1="${baseline}" x2="600" y2="${baseline}" stroke="#94a3ad"></line>${bars}`;
 }
 
-function renderCurveChart(curves) {
+function renderCurveChart(curves, mode = null) {
   if (!curves || !curves.openWater || !curves.openWater.length) {
     curveChart.innerHTML = emptyCurveChart();
     return;
@@ -205,7 +216,7 @@ function renderCurveChart(curves) {
     <line x1="${markerX}" y1="${margin.top}" x2="${markerX}" y2="${margin.top + plotHeight}" stroke="#333f48" stroke-dasharray="5 5"></line>
     <circle cx="${markerX}" cy="${markerY}" r="7" fill="#d7263d" stroke="#ffffff" stroke-width="2"></circle>
     <text x="${markerX + 10}" y="${markerY - 10}" class="chart-label">Current J ${point.j.toFixed(4)}</text>
-    <text x="${margin.left}" y="20" class="chart-title">Open-water characteristics at current propeller geometry</text>
+    <text x="${margin.left}" y="20" class="chart-title">${labelForMode(mode)} open-water characteristics</text>
     <text x="660" y="56" fill="#1f6f8b">KT</text>
     <text x="660" y="80" fill="#a35f22">10KQ</text>
     <text x="660" y="104" fill="#28784f">Eta 0</text>
@@ -236,6 +247,24 @@ function number(data, key) {
   return Number(data.get(key));
 }
 
+function updateModeFields() {
+  const mode = form.elements.mode.value;
+  document.querySelectorAll("[data-mode-field]").forEach(node => {
+    node.classList.toggle("mode-hidden", node.dataset.modeField !== mode);
+  });
+  runButton.textContent = `Run ${labelForMode(mode)}`;
+  if (mode === "optimization") {
+    statusNode.textContent = "Optimization Ready";
+  } else {
+    statusNode.textContent = "Evaluation Ready";
+  }
+}
+
+function labelForMode(mode) {
+  return mode === "optimization" ? "Optimization" : "Evaluation";
+}
+
+updateModeFields();
 renderPropeller({
   diameterMeters: Number(form.elements.initialDiameterMeters.value),
   expandedAreaRatio: Number(form.elements.initialExpandedAreaRatio.value),
