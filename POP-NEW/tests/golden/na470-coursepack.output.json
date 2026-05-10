@@ -1,0 +1,27 @@
+{
+  "projectName": "NA 470 Coursepack Example",
+  "runId": "test 1.0",
+  "mode": "optimization",
+  "series": "wageningen_b",
+  "pitchType": "fixed",
+  "results": {
+    "diameterMeters": 4.6,
+    "pitchMeters": 3.76,
+    "pitchDiameterRatio": 0.8171,
+    "expandedAreaRatio": 0.6293,
+    "rpm": 147.07,
+    "advanceCoefficient": 0.5408,
+    "thrustCoefficient": 0.1615,
+    "torqueCoefficient": 0.02205,
+    "openWaterEfficiency": 0.631,
+    "thrustKn": 444.8,
+    "reynoldsNumber": 36800000.0,
+    "cavitationNumber": 0.4339,
+    "optimizationSearchEvaluationCount": 73
+  },
+  "source": {
+    "inputFile": "POP-OLD/POP1.POP",
+    "outputFile": "POP-OLD/POPout.pop",
+    "notes": "Values recovered from printable strings in legacy OLE Compound Document files."
+  }
+}

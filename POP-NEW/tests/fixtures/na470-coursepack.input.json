@@ -1,0 +1,23 @@
+{
+  "projectName": "NA 470 Coursepack Example",
+  "runId": "test 1.0",
+  "mode": "optimization",
+  "series": "wageningen_b",
+  "pitchType": "fixed",
+  "bladeCount": 4,
+  "initialExpandedAreaRatio": 0.75,
+  "initialPitchDiameterRatio": 1.0,
+  "initialDiameterMeters": 4.57,
+  "diameterMinMeters": 2.0,
+  "diameterMaxMeters": 4.6,
+  "requiredThrustKn": 444.8221,
+  "shipSpeedKnots": 11.84,
+  "wakeFraction": 0.0,
+  "shaftDepthMeters": 4.39,
+  "water": {
+    "kind": "salt_15c",
+    "densityKgM3": 1025.87,
+    "kinematicViscosityM2S": 0.00000118831
+  },
+  "burrillBackCavitationPercent": 5
+}
