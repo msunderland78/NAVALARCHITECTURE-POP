@@ -1,0 +1,33 @@
+Project Name: NA 470 Coursepack Example
+Run Identification: test 1.0
+Optimization Run
+Wageningen B-Screw Series
+Fixed-Pitch Propeller
+Number of Propeller Blades = 4
+Initial Expanded Area Ratio Ae/Ao = 0.750
+Initial Pitch Diameter Ratio P/Dp = 1.000
+Initial Propeller Diameter Dp (meters) = 4.57
+Burrill Back Cavitation Constraint = 5%
+Required Propeller Thrust (kN) = 444.822100
+Ship Speed Vk (knots) = 11.840
+Wake Fraction w = 0.0000
+Depth of Shaft below Waterline (meters) = 4.39
+Water Properties: Salt Water at 15 degrees Celsius
+Water Density Rho (kg/m^3) = 1025.870
+Kinematic Viscosity Nu (m^2/sec) = 1.188310e-006
+Minimum Diameter Constriant Dpmin (m) = 2.00
+Maximum Diameter Constriant Dpmax (m) = 4.60
+Optimal Design Results:
+Propeller Diameter Dp (m) = 4.60
+Propeller Pitch P (m) = 3.76
+Pitch Diameter Ratio P/Dp = 0.8171
+Expanded Area Ratio Ae/Ao = 0.6293
+Propeller Revolutions per Minute (rpm) = 147.07
+Advance Coefficient J = 0.5408
+Thrust Coefficient KT = 0.1615
+Torque Coefficient KQ = 0.02205
+Propeller Open Water Efficiency Eta 0 = 0.631
+Propeller Thrust (kN) = 444.8
+Reynolds Number RN = 0.368E+08
+Cavitation Number Sigma = 0.4339
+Optimization Search Evaluation Count = 73
