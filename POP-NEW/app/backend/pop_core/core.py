@@ -35,6 +35,14 @@ def open_water_efficiency(advance_coefficient_value: float, thrust_coefficient_v
     return advance_coefficient_value * thrust_coefficient_value / (2.0 * PI * torque_coefficient_value)
 
 
+def pitch_type_efficiency_factor(case: PopInput) -> float:
+    return 0.98 if case.pitchType == "controllable" else 1.0
+
+
+def propeller_open_water_efficiency(case: PopInput, advance_coefficient_value: float, thrust_coefficient_value: float, torque_coefficient_value: float) -> float:
+    return open_water_efficiency(advance_coefficient_value, thrust_coefficient_value, torque_coefficient_value) * pitch_type_efficiency_factor(case)
+
+
 def cavitation_number(density_kg_m3: float, shaft_depth_meters: float, advance_speed: float, revolutions_per_second_value: float, diameter_meters: float) -> float:
     pressure = ATMOSPHERIC_PRESSURE_PA + density_kg_m3 * GRAVITY_MPS2 * shaft_depth_meters
     tangential_speed_07r = 0.7 * PI * revolutions_per_second_value * diameter_meters

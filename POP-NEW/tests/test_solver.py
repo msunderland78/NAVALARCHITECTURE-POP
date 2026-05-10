@@ -69,6 +69,29 @@ class SolverTests(unittest.TestCase):
         self.assertAlmostEqual(result.rpm, expected["rpm"], delta=0.2)
         self.assertTrue(passes_burrill_constraint(result, case.burrillBackCavitationPercent))
 
+    def test_controllable_pitch_reduces_efficiency_by_two_percent(self):
+        fixed_data = json.loads((ROOT / "tests/fixtures/na470-coursepack.input.json").read_text())
+        fixed_data["mode"] = "evaluation"
+        fixed_case = PopInput.from_dict(fixed_data)
+        controllable_data = dict(fixed_data)
+        controllable_data["pitchType"] = "controllable"
+        controllable_case = PopInput.from_dict(controllable_data)
+
+        fixed = evaluate_design_auto_reynolds(
+            fixed_case,
+            fixed_case.initialDiameterMeters,
+            fixed_case.initialPitchDiameterRatio,
+            fixed_case.initialExpandedAreaRatio
+        )
+        controllable = evaluate_design_auto_reynolds(
+            controllable_case,
+            controllable_case.initialDiameterMeters,
+            controllable_case.initialPitchDiameterRatio,
+            controllable_case.initialExpandedAreaRatio
+        )
+
+        self.assertAlmostEqual(controllable.openWaterEfficiency, fixed.openWaterEfficiency * 0.98, delta=0.000001)
+
 
 if __name__ == "__main__":
     unittest.main()

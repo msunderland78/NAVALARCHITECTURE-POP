@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from .core import required_thrust_newtons
+from .core import propeller_open_water_efficiency, required_thrust_newtons
 from .models import PopInput, validate_case
 from .optimizer import OptimizationResult, optimize_design
 from .solver import DesignEvaluation, evaluate_design_auto_reynolds
@@ -47,7 +47,7 @@ def _curve_data(case: PopInput, design: DesignEvaluation) -> dict:
         j = 0.05 + index * 0.025
         kt = wageningen_kt_corrected(j, design.pitchDiameterRatio, design.expandedAreaRatio, case.bladeCount, design.reynoldsNumber)
         kq = wageningen_kq_corrected(j, design.pitchDiameterRatio, design.expandedAreaRatio, case.bladeCount, design.reynoldsNumber)
-        eta = j * kt / (2.0 * 3.141592653589793 * kq) if kq > 0 and kt > 0 else 0.0
+        eta = propeller_open_water_efficiency(case, j, kt, kq) if kq > 0 and kt > 0 else 0.0
         rows.append({
             "j": round(j, 4),
             "kt": kt,

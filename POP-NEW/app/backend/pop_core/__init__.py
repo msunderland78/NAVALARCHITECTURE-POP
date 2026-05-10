@@ -1,4 +1,4 @@
-from .core import advance_coefficient, advance_speed_mps, cavitation_number, open_water_efficiency, pitch_meters, required_thrust_newtons, revolutions_per_second, thrust_coefficient
+from .core import advance_coefficient, advance_speed_mps, cavitation_number, open_water_efficiency, pitch_meters, pitch_type_efficiency_factor, propeller_open_water_efficiency, required_thrust_newtons, revolutions_per_second, thrust_coefficient
 from .legacy_pop import parse_legacy_input, parse_legacy_output, read_legacy_pop_text, read_legacy_pop_text_bytes
 from .models import PopInput, Water, validate_case
 from .optimizer import OptimizationResult, optimize_design
@@ -18,6 +18,8 @@ __all__ = [
     "cavitation_number",
     "open_water_efficiency",
     "pitch_meters",
+    "pitch_type_efficiency_factor",
+    "propeller_open_water_efficiency",
     "required_thrust_newtons",
     "revolutions_per_second",
     "thrust_coefficient",

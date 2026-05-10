@@ -38,6 +38,19 @@ class ServiceTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "initialDiameterMeters"):
             run_case(case)
 
+    def test_controllable_pitch_curve_uses_reduced_efficiency(self):
+        fixed_data = json.loads((ROOT / "tests/fixtures/na470-coursepack.input.json").read_text())
+        fixed_data["mode"] = "evaluation"
+        controllable_data = dict(fixed_data)
+        controllable_data["pitchType"] = "controllable"
+
+        fixed_payload = result_payload(PopInput.from_dict(fixed_data), run_case(PopInput.from_dict(fixed_data)))
+        controllable_payload = result_payload(PopInput.from_dict(controllable_data), run_case(PopInput.from_dict(controllable_data)))
+        fixed_eta = fixed_payload["curves"]["openWater"][10]["eta"]
+        controllable_eta = controllable_payload["curves"]["openWater"][10]["eta"]
+
+        self.assertAlmostEqual(controllable_eta, fixed_eta * 0.98, delta=0.000001)
+
     def test_cli_outputs_json(self):
         data = json.loads((ROOT / "tests/fixtures/na470-coursepack.input.json").read_text())
         data["mode"] = "evaluation"

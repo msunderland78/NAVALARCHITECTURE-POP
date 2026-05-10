@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from math import pi, sqrt
 
-from .core import advance_coefficient, advance_speed_mps, cavitation_number, open_water_efficiency, required_thrust_newtons, thrust_coefficient
+from .core import advance_coefficient, advance_speed_mps, cavitation_number, propeller_open_water_efficiency, required_thrust_newtons, thrust_coefficient
 from .models import PopInput
 from .wageningen import wageningen_kq_corrected, wageningen_kt_corrected
 
@@ -47,7 +47,7 @@ def evaluate_design(case: PopInput, diameter_meters: float, pitch_diameter_ratio
     kq = wageningen_kq_corrected(j, pitch_diameter_ratio, expanded_area_ratio, case.bladeCount, reynolds_number)
     sigma = cavitation_number(case.water.densityKgM3, case.shaftDepthMeters, va, n, diameter_meters)
     loading = burrill_loading(case, diameter_meters, expanded_area_ratio, j)
-    eta = open_water_efficiency(j, kt, kq)
+    eta = propeller_open_water_efficiency(case, j, kt, kq)
     return DesignEvaluation(diameter_meters, pitch_diameter_ratio, expanded_area_ratio, rpm, advance_coefficient(va, n, diameter_meters), kt, kq, eta, reynolds_number, sigma, loading)
 
 
