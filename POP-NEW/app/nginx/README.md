@@ -11,3 +11,5 @@ docker-compose up --build
 ```
 
 The host port is selected by `POP_HOST_PORT` in `docker-compose.yml`. If it is not set, Compose publishes NGINX on port `8080`.
+
+TLS is intentionally not hard-coded in this NGINX config. Public deployers can terminate HTTPS with their own reverse proxy or certificate workflow, including Let’s Encrypt or OpenSSL-generated certificates, and forward traffic to the POP HTTP port. Certificate files and private keys should not be committed.

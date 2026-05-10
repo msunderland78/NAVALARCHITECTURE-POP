@@ -2,3 +2,4 @@
 __pycache__/
 *.pyc
 POP-NEW/app/.env
+POP-NEW/app/certs/

@@ -31,6 +31,10 @@ class DeploymentFileTests(unittest.TestCase):
         self.assertIn("docker-compose up --build", readme)
         self.assertIn("POP_HOST_PORT", readme)
         self.assertIn("SERVER_IP", readme)
+        self.assertIn("HTTPS/TLS", readme)
+        self.assertIn("Let", readme)
+        self.assertIn("OpenSSL", readme)
+        self.assertIn("127.0.0.1:8080", readme)
         self.assertIn("docker-compose ps", readme)
         self.assertIn("usermod -aG docker", readme)
 
@@ -43,6 +47,7 @@ class DeploymentFileTests(unittest.TestCase):
         gitignore = (ROOT.parent / ".gitignore").read_text()
 
         self.assertIn("POP-NEW/app/.env", gitignore)
+        self.assertIn("POP-NEW/app/certs/", gitignore)
 
     def test_nginx_proxies_to_backend(self):
         config = (ROOT / "app/nginx/nginx.conf").read_text()
@@ -54,6 +59,9 @@ class DeploymentFileTests(unittest.TestCase):
         dockerignore = (ROOT / "app/.dockerignore").read_text()
 
         self.assertIn("*-OLD/", dockerignore)
+        self.assertIn("certs/", dockerignore)
+        self.assertIn("*.key", dockerignore)
+        self.assertIn("*.pem", dockerignore)
 
 
 if __name__ == "__main__":

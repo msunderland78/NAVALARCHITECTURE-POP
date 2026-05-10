@@ -4,3 +4,6 @@
 ../../POP-OLD/
 POP-OLD/
 *-OLD/
+certs/
+*.key
+*.pem
