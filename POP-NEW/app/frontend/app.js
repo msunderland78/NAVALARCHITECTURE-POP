@@ -7,6 +7,7 @@ const propellerDiagram = document.querySelector("#propeller-diagram");
 const curveChart = document.querySelector("#curve-chart");
 const runButton = document.querySelector("#run-button");
 const resultMode = document.querySelector("#result-mode");
+const verificationTable = document.querySelector("#verification-table");
 let latestPayload = null;
 
 document.querySelector("#load-sample").addEventListener("click", async () => {
@@ -77,6 +78,7 @@ form.addEventListener("submit", async event => {
 
 form.addEventListener("input", () => {
   updateModeFields();
+  renderVerification(readForm());
   renderPropeller({
     diameterMeters: Number(form.elements.initialDiameterMeters.value),
     expandedAreaRatio: Number(form.elements.initialExpandedAreaRatio.value),
@@ -134,6 +136,7 @@ function fillForm(data) {
   form.elements.burrillBackCavitationPercent.value = data.burrillBackCavitationPercent;
   statusNode.textContent = "Sample Loaded";
   updateModeFields();
+  renderVerification(readForm());
   renderPropeller({
     diameterMeters: data.initialDiameterMeters,
     expandedAreaRatio: data.initialExpandedAreaRatio,
@@ -165,6 +168,27 @@ function renderResults(payload) {
   renderPropeller(rounded, Number(form.elements.bladeCount.value));
   renderCurveChart(payload.curves, payload.mode);
   renderChart(rounded);
+}
+
+function renderVerification(input) {
+  const effectiveSpeed = input.shipSpeedKnots * (1 - input.wakeFraction);
+  const diameter = input.mode === "optimization"
+    ? `${format(input.diameterMinMeters)} to ${format(input.diameterMaxMeters)} m`
+    : `${format(input.initialDiameterMeters)} m`;
+  const rows = [
+    ["Mode", labelForMode(input.mode)],
+    ["Project", input.projectName],
+    ["Required Thrust", `${format(input.requiredThrustKn)} kN`],
+    ["Ship Speed", `${format(input.shipSpeedKnots)} kn`],
+    ["Advance Speed", `${format(effectiveSpeed)} kn`],
+    ["Diameter", diameter],
+    ["Blades", input.bladeCount],
+    ["Pitch Type", titleCase(input.pitchType)],
+    ["Water Density", `${format(input.water.densityKgM3)} kg/m3`],
+    ["Viscosity", `${input.water.kinematicViscosityM2S.toExponential(4)} m2/s`],
+    ["Cavitation Limit", `${format(input.burrillBackCavitationPercent)}%`]
+  ];
+  verificationTable.innerHTML = rows.map(([name, value]) => `<tr><td>${escapeHtml(name)}</td><td>${escapeHtml(value)}</td></tr>`).join("");
 }
 
 function renderPropeller(result, bladeCount) {
@@ -318,6 +342,25 @@ function slug(value) {
   return String(value || "pop").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "pop";
 }
 
+function format(value) {
+  if (!Number.isFinite(value)) return "-";
+  return Number(value.toFixed(4)).toString();
+}
+
+function titleCase(value) {
+  return String(value || "").replaceAll("_", " ").replace(/\b[a-z]/g, letter => letter.toUpperCase());
+}
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, character => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  }[character]));
+}
+
 function updateModeFields() {
   const mode = form.elements.mode.value;
   document.querySelectorAll("[data-mode-field]").forEach(node => {
@@ -336,6 +379,7 @@ function labelForMode(mode) {
 }
 
 updateModeFields();
+renderVerification(readForm());
 renderPropeller({
   diameterMeters: Number(form.elements.initialDiameterMeters.value),
   expandedAreaRatio: Number(form.elements.initialExpandedAreaRatio.value),

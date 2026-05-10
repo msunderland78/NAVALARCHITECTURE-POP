@@ -16,6 +16,7 @@ class FrontendStaticTests(unittest.TestCase):
         self.assertIn('id="legacy-pop-file"', html)
         self.assertIn('id="download-json"', html)
         self.assertIn('id="download-csv"', html)
+        self.assertIn('id="verification-table"', html)
         self.assertIn("Propeller Optimization Program", html)
 
     def test_frontend_does_not_auto_run(self):
@@ -37,6 +38,13 @@ class FrontendStaticTests(unittest.TestCase):
         self.assertIn("payloadToCsv", script)
         self.assertIn("downloadText", script)
         self.assertIn(".csv", script)
+
+    def test_frontend_has_input_verification_view(self):
+        script = (ROOT / "app/frontend/app.js").read_text()
+
+        self.assertIn("renderVerification", script)
+        self.assertIn("Advance Speed", script)
+        self.assertIn("Cavitation Limit", script)
 
 
 if __name__ == "__main__":

@@ -40,6 +40,11 @@ h2 {
   font-size: 18px;
 }
 
+h3 {
+  margin: 0 0 10px;
+  font-size: 15px;
+}
+
 .topbar p {
   margin-top: 4px;
   color: #b8c8d4;
@@ -78,6 +83,14 @@ h2 {
 
 form {
   padding: 14px;
+}
+
+.verification-view {
+  padding: 0 14px 14px;
+}
+
+.verification-view table {
+  font-size: 13px;
 }
 
 fieldset {
