@@ -13,18 +13,18 @@ No obvious hardware-lock or dongle dependency was found in the current artifacts
 Current status as of May 10, 2026:
 
 - Evidence preservation is complete for the supplied `POP-OLD` artifacts, including executable inventory, static string findings, OLE `.POP` notes, and Wageningen source notes.
-- The calculation core is implemented in `POP-NEW/app/backend/pop_core` with Wageningen B-series evaluation, thrust solving, Reynolds correction, Burrill cavitation screening, evaluation mode, and optimization mode.
+- The calculation core is implemented in `POP-NEW/app/backend/pop_core` with Wageningen B-series evaluation, thrust solving, Reynolds correction, Burrill cavitation screening, controllable-pitch efficiency reduction, evaluation mode, and optimization mode.
 - Golden regression coverage exists for the NA 470 coursepack case, plus solver, optimizer, import, HTTP API, deployment, and frontend static checks.
 - Legacy `.POP` import is implemented through an OLE Compound Document reader and a label-based converter for the known sample files.
-- The browser UI supports evaluation and optimization modes, mode-specific fields, `.POP` import, JSON/CSV export, input verification, result tables, a propeller sketch, coefficient bars, and an open-water curve plot with the current operating point.
+- The browser UI supports evaluation and optimization modes, mode-specific fields, water-property presets, `.POP` import, JSON/CSV/PDF export, input verification, result tables, a propeller sketch, coefficient bars, and an open-water curve plot with the current operating point.
 - Runtime validation rejects invalid physical inputs before calculation and returns API validation errors as HTTP 400 responses.
 - Container deployment is implemented with a backend Dockerfile, NGINX reverse proxy, `docker-compose.yml`, health checks, and a deployment README. The compose stack has been smoke-tested on `http://127.0.0.1:8080/`.
 
 Remaining modernization work should focus on engineering calibration and product hardening:
 
 - Add more oracle cases if additional legacy `.POP` files or printed POP outputs become available.
-- Confirm the controllable-pitch 2% efficiency reduction against a legacy oracle case before relying on it for production decisions.
-- Decide whether a browser print/PDF export is required beyond the current JSON and CSV exports.
+- Confirm the controllable-pitch 2% efficiency reduction against a legacy oracle case before relying on it for production decisions; the code now implements the behavior visible in the legacy strings.
+- Decide whether a server-side PDF generator is required beyond the current browser print-to-PDF export.
 - Add deployment-specific settings for the final Ubuntu/NGINX host once hostname, TLS, and persistence requirements are known.
 
 ## Legacy File Inventory
