@@ -60,6 +60,13 @@ class FrontendStaticTests(unittest.TestCase):
         self.assertIn("Advance Speed", script)
         self.assertIn("Cavitation Limit", script)
 
+    def test_frontend_applies_water_presets(self):
+        script = (ROOT / "app/frontend/app.js").read_text()
+
+        self.assertIn("WATER_PRESETS", script)
+        self.assertIn("applyWaterPreset", script)
+        self.assertIn("markCustomWater", script)
+
 
 if __name__ == "__main__":
     unittest.main()

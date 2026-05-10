@@ -8,6 +8,10 @@ const curveChart = document.querySelector("#curve-chart");
 const runButton = document.querySelector("#run-button");
 const resultMode = document.querySelector("#result-mode");
 const verificationTable = document.querySelector("#verification-table");
+const WATER_PRESETS = {
+  salt_15c: {densityKgM3: 1025.87, kinematicViscosityM2S: 0.00000118831},
+  fresh_15c: {densityKgM3: 999.1, kinematicViscosityM2S: 0.000001139}
+};
 let latestPayload = null;
 
 document.querySelector("#load-sample").addEventListener("click", async () => {
@@ -93,6 +97,12 @@ form.addEventListener("input", () => {
 });
 
 form.elements.mode.addEventListener("change", updateModeFields);
+form.elements.waterKind.addEventListener("change", () => {
+  applyWaterPreset();
+  renderVerification(readForm());
+});
+form.elements.densityKgM3.addEventListener("input", markCustomWater);
+form.elements.kinematicViscosityM2S.addEventListener("input", markCustomWater);
 
 function readForm() {
   const data = new FormData(form);
@@ -190,6 +200,7 @@ function renderVerification(input) {
     ["Diameter", diameter],
     ["Blades", input.bladeCount],
     ["Pitch Type", titleCase(input.pitchType)],
+    ["Water Preset", titleCase(input.water.kind)],
     ["Water Density", `${format(input.water.densityKgM3)} kg/m3`],
     ["Viscosity", `${input.water.kinematicViscosityM2S.toExponential(4)} m2/s`],
     ["Cavitation Limit", `${format(input.burrillBackCavitationPercent)}%`]
@@ -308,6 +319,23 @@ function emptyCurveChart() {
 
 function number(data, key) {
   return Number(data.get(key));
+}
+
+function applyWaterPreset() {
+  const preset = WATER_PRESETS[form.elements.waterKind.value];
+  if (!preset) return;
+  form.elements.densityKgM3.value = preset.densityKgM3;
+  form.elements.kinematicViscosityM2S.value = preset.kinematicViscosityM2S;
+}
+
+function markCustomWater() {
+  const preset = WATER_PRESETS[form.elements.waterKind.value];
+  if (!preset) return;
+  const density = Number(form.elements.densityKgM3.value);
+  const viscosity = Number(form.elements.kinematicViscosityM2S.value);
+  if (density !== preset.densityKgM3 || viscosity !== preset.kinematicViscosityM2S) {
+    form.elements.waterKind.value = "custom";
+  }
 }
 
 async function readJsonResponse(response) {
