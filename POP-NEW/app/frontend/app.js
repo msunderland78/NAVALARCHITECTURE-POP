@@ -3,6 +3,7 @@ const statusNode = document.querySelector("#status");
 const resultTable = document.querySelector("#result-table");
 const jsonOutput = document.querySelector("#json-output");
 const chart = document.querySelector("#result-chart");
+const propellerDiagram = document.querySelector("#propeller-diagram");
 let latestPayload = null;
 
 document.querySelector("#load-sample").addEventListener("click", async () => {
@@ -20,14 +21,27 @@ document.querySelector("#copy-json").addEventListener("click", async () => {
 form.addEventListener("submit", async event => {
   event.preventDefault();
   statusNode.textContent = "Running";
-  const response = await fetch("/api/run", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify(readForm())
-  });
-  latestPayload = await response.json();
-  renderResults(latestPayload);
-  statusNode.textContent = "Complete";
+  try {
+    const response = await fetch("/api/run", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(readForm())
+    });
+    latestPayload = await response.json();
+    renderResults(latestPayload);
+    statusNode.textContent = "Complete";
+  } catch (error) {
+    statusNode.textContent = "Run Failed";
+    jsonOutput.textContent = String(error);
+  }
+});
+
+form.addEventListener("input", () => {
+  renderPropeller({
+    diameterMeters: Number(form.elements.initialDiameterMeters.value),
+    expandedAreaRatio: Number(form.elements.initialExpandedAreaRatio.value),
+    pitchDiameterRatio: Number(form.elements.initialPitchDiameterRatio.value)
+  }, Number(form.elements.bladeCount.value));
 });
 
 function readForm() {
@@ -77,6 +91,11 @@ function fillForm(data) {
   form.elements.kinematicViscosityM2S.value = data.water.kinematicViscosityM2S;
   form.elements.burrillBackCavitationPercent.value = data.burrillBackCavitationPercent;
   statusNode.textContent = "Sample Loaded";
+  renderPropeller({
+    diameterMeters: data.initialDiameterMeters,
+    expandedAreaRatio: data.initialExpandedAreaRatio,
+    pitchDiameterRatio: data.initialPitchDiameterRatio
+  }, data.bladeCount);
 }
 
 function renderResults(payload) {
@@ -98,7 +117,40 @@ function renderResults(payload) {
   ];
   resultTable.innerHTML = rows.map(([name, value]) => `<tr><td>${name}</td><td>${value}</td></tr>`).join("");
   jsonOutput.textContent = JSON.stringify(payload, null, 2);
+  renderPropeller(rounded, Number(form.elements.bladeCount.value));
   renderChart(rounded);
+}
+
+function renderPropeller(result, bladeCount) {
+  const diameter = result.diameterMeters || Number(form.elements.initialDiameterMeters.value);
+  const areaRatio = result.expandedAreaRatio || Number(form.elements.initialExpandedAreaRatio.value);
+  const pitchRatio = result.pitchDiameterRatio || Number(form.elements.initialPitchDiameterRatio.value);
+  const bladeLength = 118;
+  const bladeWidth = Math.max(28, Math.min(70, 36 + areaRatio * 42));
+  const pitchSkew = Math.max(-22, Math.min(36, (pitchRatio - 0.75) * 65));
+  const cx = 320;
+  const cy = 170;
+  const blades = Array.from({length: bladeCount}, (_, index) => {
+    const angle = 360 / bladeCount * index;
+    return `
+      <g transform="rotate(${angle} ${cx} ${cy})">
+        <path d="M ${cx + 26} ${cy - 9}
+                 C ${cx + 80} ${cy - bladeWidth} ${cx + bladeLength + pitchSkew} ${cy - bladeWidth / 2} ${cx + 148} ${cy - 6}
+                 C ${cx + bladeLength + pitchSkew} ${cy + bladeWidth / 2} ${cx + 82} ${cy + bladeWidth} ${cx + 26} ${cy + 9}
+                 Z"
+              fill="#2f7d8c" stroke="#174c56" stroke-width="2"></path>
+        <path d="M ${cx + 44} ${cy} C ${cx + 92} ${cy - 10} ${cx + 122} ${cy - 8} ${cx + 146} ${cy - 2}"
+              fill="none" stroke="#d9f0f3" stroke-width="2"></path>
+      </g>`;
+  }).join("");
+  propellerDiagram.innerHTML = `
+    <circle cx="${cx}" cy="${cy}" r="154" fill="none" stroke="#cbd6de" stroke-width="2"></circle>
+    ${blades}
+    <circle cx="${cx}" cy="${cy}" r="34" fill="#10212f"></circle>
+    <circle cx="${cx}" cy="${cy}" r="14" fill="#e9f2f5"></circle>
+    <text x="42" y="320">D ${diameter.toFixed(2)} m</text>
+    <text x="214" y="320">Ae/Ao ${areaRatio.toFixed(4)}</text>
+    <text x="414" y="320">P/D ${pitchRatio.toFixed(4)}</text>`;
 }
 
 function renderChart(result) {
@@ -109,17 +161,28 @@ function renderChart(result) {
     ["Eta", result.openWaterEfficiency]
   ];
   const maxValue = Math.max(...values.map(item => item[1]), 0.1);
+  const baseline = 170;
   const bars = values.map(([label, value], index) => {
     const x = 80 + index * 130;
-    const height = Math.max(2, value / maxValue * 200);
-    const y = 240 - height;
-    return `<rect x="${x}" y="${y}" width="58" height="${height}" fill="#2f7d8c"></rect><text x="${x + 29}" y="265" text-anchor="middle">${label}</text><text x="${x + 29}" y="${y - 8}" text-anchor="middle">${value.toFixed(3)}</text>`;
+    const height = Math.max(2, value / maxValue * 130);
+    const y = baseline - height;
+    return `<rect x="${x}" y="${y}" width="58" height="${height}" fill="#2f7d8c"></rect><text x="${x + 29}" y="198" text-anchor="middle">${label}</text><text x="${x + 29}" y="${y - 8}" text-anchor="middle">${value.toFixed(3)}</text>`;
   }).join("");
-  chart.innerHTML = `<line x1="48" y1="240" x2="600" y2="240" stroke="#94a3ad"></line>${bars}`;
+  chart.innerHTML = `<line x1="48" y1="${baseline}" x2="600" y2="${baseline}" stroke="#94a3ad"></line>${bars}`;
 }
 
 function number(data, key) {
   return Number(data.get(key));
 }
 
-form.dispatchEvent(new Event("submit"));
+renderPropeller({
+  diameterMeters: Number(form.elements.initialDiameterMeters.value),
+  expandedAreaRatio: Number(form.elements.initialExpandedAreaRatio.value),
+  pitchDiameterRatio: Number(form.elements.initialPitchDiameterRatio.value)
+}, Number(form.elements.bladeCount.value));
+renderChart({
+  advanceCoefficient: 0,
+  thrustCoefficient: 0,
+  torqueCoefficient: 0,
+  openWaterEfficiency: 0
+});

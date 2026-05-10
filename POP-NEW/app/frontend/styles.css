@@ -159,6 +159,11 @@ td:last-child {
   font-variant-numeric: tabular-nums;
 }
 
+.visual-stack {
+  display: grid;
+  gap: 12px;
+}
+
 .chart-wrap {
   min-height: 300px;
   border: 1px solid #dce2e8;
@@ -166,10 +171,18 @@ td:last-child {
   background: #fbfcfd;
 }
 
+.small-chart {
+  min-height: 220px;
+}
+
 svg {
   display: block;
   width: 100%;
   height: 300px;
+}
+
+.small-chart svg {
+  height: 220px;
 }
 
 pre {

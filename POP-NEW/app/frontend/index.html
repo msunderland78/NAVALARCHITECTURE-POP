@@ -27,7 +27,7 @@
             <legend>Project</legend>
             <label>Project Name<input name="projectName" value="NA 470 Coursepack Example"></label>
             <label>Run ID<input name="runId" value="test 1.0"></label>
-            <label>Mode<select name="mode"><option value="optimization">Optimization</option><option value="evaluation">Evaluation</option></select></label>
+            <label>Mode<select name="mode"><option value="evaluation">Evaluation</option><option value="optimization">Optimization</option></select></label>
             <label>Pitch Type<select name="pitchType"><option value="fixed">Fixed</option><option value="controllable">Controllable</option></select></label>
           </fieldset>
 
@@ -70,8 +70,13 @@
           <table>
             <tbody id="result-table"></tbody>
           </table>
-          <div class="chart-wrap">
-            <svg id="result-chart" viewBox="0 0 640 300" role="img" aria-label="Propeller coefficients chart"></svg>
+          <div class="visual-stack">
+            <div class="chart-wrap">
+              <svg id="propeller-diagram" viewBox="0 0 640 360" role="img" aria-label="Propeller diagram"></svg>
+            </div>
+            <div class="chart-wrap small-chart">
+              <svg id="result-chart" viewBox="0 0 640 220" role="img" aria-label="Propeller coefficients chart"></svg>
+            </div>
           </div>
         </div>
         <pre id="json-output"></pre>
