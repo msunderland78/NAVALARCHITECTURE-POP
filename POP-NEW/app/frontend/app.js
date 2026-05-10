@@ -4,6 +4,7 @@ const resultTable = document.querySelector("#result-table");
 const jsonOutput = document.querySelector("#json-output");
 const chart = document.querySelector("#result-chart");
 const propellerDiagram = document.querySelector("#propeller-diagram");
+const curveChart = document.querySelector("#curve-chart");
 let latestPayload = null;
 
 document.querySelector("#load-sample").addEventListener("click", async () => {
@@ -118,6 +119,7 @@ function renderResults(payload) {
   resultTable.innerHTML = rows.map(([name, value]) => `<tr><td>${name}</td><td>${value}</td></tr>`).join("");
   jsonOutput.textContent = JSON.stringify(payload, null, 2);
   renderPropeller(rounded, Number(form.elements.bladeCount.value));
+  renderCurveChart(payload.curves);
   renderChart(rounded);
 }
 
@@ -171,6 +173,65 @@ function renderChart(result) {
   chart.innerHTML = `<line x1="48" y1="${baseline}" x2="600" y2="${baseline}" stroke="#94a3ad"></line>${bars}`;
 }
 
+function renderCurveChart(curves) {
+  if (!curves || !curves.openWater || !curves.openWater.length) {
+    curveChart.innerHTML = emptyCurveChart();
+    return;
+  }
+  const width = 760;
+  const height = 420;
+  const margin = {left: 66, right: 28, top: 28, bottom: 54};
+  const plotWidth = width - margin.left - margin.right;
+  const plotHeight = height - margin.top - margin.bottom;
+  const xMin = 0;
+  const xMax = 1.45;
+  const yMax = Math.max(
+    0.7,
+    ...curves.openWater.flatMap(point => [point.kt, point.kq * 10, point.eta]).filter(value => Number.isFinite(value))
+  );
+  const x = value => margin.left + (value - xMin) / (xMax - xMin) * plotWidth;
+  const y = value => margin.top + plotHeight - value / yMax * plotHeight;
+  const ktPath = pathFor(curves.openWater, point => point.kt, x, y);
+  const kqPath = pathFor(curves.openWater, point => point.kq * 10, x, y);
+  const etaPath = pathFor(curves.openWater, point => point.eta, x, y);
+  const point = curves.point;
+  const markerX = x(point.j);
+  const markerY = y(point.kt);
+  curveChart.innerHTML = `
+    ${gridLines(x, y, yMax)}
+    <path d="${ktPath}" fill="none" stroke="#1f6f8b" stroke-width="3"></path>
+    <path d="${kqPath}" fill="none" stroke="#a35f22" stroke-width="3"></path>
+    <path d="${etaPath}" fill="none" stroke="#28784f" stroke-width="3"></path>
+    <line x1="${markerX}" y1="${margin.top}" x2="${markerX}" y2="${margin.top + plotHeight}" stroke="#333f48" stroke-dasharray="5 5"></line>
+    <circle cx="${markerX}" cy="${markerY}" r="7" fill="#d7263d" stroke="#ffffff" stroke-width="2"></circle>
+    <text x="${markerX + 10}" y="${markerY - 10}" class="chart-label">Current J ${point.j.toFixed(4)}</text>
+    <text x="${margin.left}" y="20" class="chart-title">Open-water characteristics at current propeller geometry</text>
+    <text x="660" y="56" fill="#1f6f8b">KT</text>
+    <text x="660" y="80" fill="#a35f22">10KQ</text>
+    <text x="660" y="104" fill="#28784f">Eta 0</text>
+    <text x="360" y="406" class="axis-label">Advance coefficient J</text>
+    <text x="15" y="230" transform="rotate(-90 15 230)" class="axis-label">Coefficient value</text>`;
+}
+
+function pathFor(points, valueFor, x, y) {
+  return points.map((point, index) => {
+    const command = index === 0 ? "M" : "L";
+    return `${command} ${x(point.j).toFixed(2)} ${y(Math.max(0, valueFor(point))).toFixed(2)}`;
+  }).join(" ");
+}
+
+function gridLines(x, y, yMax) {
+  const xTicks = [0, 0.25, 0.5, 0.75, 1, 1.25];
+  const yTicks = [0, 0.25, 0.5, 0.75, 1].filter(value => value <= yMax);
+  const vertical = xTicks.map(value => `<line x1="${x(value)}" y1="28" x2="${x(value)}" y2="366" stroke="#e0e7ed"></line><text x="${x(value)}" y="388" text-anchor="middle">${value.toFixed(2)}</text>`).join("");
+  const horizontal = yTicks.map(value => `<line x1="66" y1="${y(value)}" x2="732" y2="${y(value)}" stroke="#e0e7ed"></line><text x="56" y="${y(value) + 4}" text-anchor="end">${value.toFixed(2)}</text>`).join("");
+  return `${vertical}${horizontal}<rect x="66" y="28" width="666" height="338" fill="none" stroke="#aebac4"></rect>`;
+}
+
+function emptyCurveChart() {
+  return `<rect x="66" y="28" width="666" height="338" fill="none" stroke="#aebac4"></rect><text x="380" y="210" text-anchor="middle">Run a case to plot open-water curves</text>`;
+}
+
 function number(data, key) {
   return Number(data.get(key));
 }
@@ -186,3 +247,4 @@ renderChart({
   torqueCoefficient: 0,
   openWaterEfficiency: 0
 });
+renderCurveChart(null);

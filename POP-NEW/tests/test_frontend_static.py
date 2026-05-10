@@ -10,6 +10,7 @@ class FrontendStaticTests(unittest.TestCase):
         html = (ROOT / "app/frontend/index.html").read_text()
 
         self.assertIn('id="propeller-diagram"', html)
+        self.assertIn('id="curve-chart"', html)
         self.assertIn("Propeller Optimization Program", html)
 
     def test_frontend_does_not_auto_run(self):

@@ -55,6 +55,7 @@ class HttpApiTests(unittest.TestCase):
         self.assertEqual(payload["runId"], "test 1.0")
         self.assertEqual(payload["mode"], "evaluation")
         self.assertIn("legacyRounded", payload)
+        self.assertIn("curves", payload)
         self.assertGreater(payload["legacyRounded"]["rpm"], 0)
 
 

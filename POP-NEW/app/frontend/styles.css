@@ -175,10 +175,18 @@ td:last-child {
   min-height: 220px;
 }
 
+.curve-chart {
+  min-height: 420px;
+}
+
 svg {
   display: block;
   width: 100%;
   height: 300px;
+}
+
+.curve-chart svg {
+  height: 420px;
 }
 
 .small-chart svg {
@@ -194,6 +202,18 @@ pre {
   background: #101820;
   color: #e8f0f6;
   font-size: 12px;
+}
+
+.chart-title {
+  font-size: 15px;
+  font-weight: 700;
+  fill: #22313d;
+}
+
+.chart-label,
+.axis-label {
+  font-size: 13px;
+  fill: #354653;
 }
 
 @media (max-width: 920px) {
