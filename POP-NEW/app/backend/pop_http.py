@@ -44,7 +44,12 @@ class PopHttpHandler(BaseHTTPRequestHandler):
         body = self.rfile.read(length)
         data = json.loads(body.decode("utf-8"))
         case = PopInput.from_dict(data)
-        self._json(200, result_payload(case, run_case(case)))
+        try:
+            result = run_case(case)
+        except ValueError as error:
+            self._json(400, {"error": "invalid_input", "message": str(error)})
+            return
+        self._json(200, result_payload(case, result))
 
     def _import_pop(self):
         length = int(self.headers.get("Content-Length", "0"))

@@ -1,6 +1,7 @@
 import json
 import threading
 import unittest
+import urllib.error
 import urllib.request
 from pathlib import Path
 
@@ -68,6 +69,24 @@ class HttpApiTests(unittest.TestCase):
         self.assertIn("legacyRounded", payload)
         self.assertIn("curves", payload)
         self.assertGreater(payload["legacyRounded"]["rpm"], 0)
+
+    def test_run_rejects_invalid_input(self):
+        data = sample_case()
+        data["shipSpeedKnots"] = 0.0
+        request = urllib.request.Request(
+            f"http://127.0.0.1:{self.port}/api/run",
+            data=json.dumps(data).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST"
+        )
+
+        with self.assertRaises(urllib.error.HTTPError) as context:
+            urllib.request.urlopen(request, timeout=10)
+
+        payload = json.loads(context.exception.read())
+        self.assertEqual(context.exception.code, 400)
+        self.assertEqual(payload["error"], "invalid_input")
+        self.assertIn("shipSpeedKnots", payload["message"])
 
     def test_import_pop_when_available(self):
         path = PROJECT_ROOT / "POP-OLD/POP1.POP"

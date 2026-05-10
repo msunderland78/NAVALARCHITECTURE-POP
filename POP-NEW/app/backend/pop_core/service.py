@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from .core import required_thrust_newtons
-from .models import PopInput
+from .models import PopInput, validate_case
 from .optimizer import OptimizationResult, optimize_design
 from .solver import DesignEvaluation, evaluate_design_auto_reynolds
 from .wageningen import wageningen_kq_corrected, wageningen_kt_corrected
@@ -15,6 +15,7 @@ class PopRunResult:
 
 
 def run_case(case: PopInput) -> PopRunResult:
+    validate_case(case)
     if case.mode == "optimization":
         result = optimize_design(case)
         return PopRunResult(case.mode, result.design, result.evaluationCount)

@@ -29,6 +29,15 @@ class ServiceTests(unittest.TestCase):
         self.assertAlmostEqual(payload["legacyRounded"]["pitchDiameterRatio"], 0.8171, delta=0.02)
         self.assertAlmostEqual(payload["legacyRounded"]["expandedAreaRatio"], 0.6293, delta=0.03)
 
+    def test_invalid_physical_input_fails_before_calculation(self):
+        data = json.loads((ROOT / "tests/fixtures/na470-coursepack.input.json").read_text())
+        data["mode"] = "evaluation"
+        data["initialDiameterMeters"] = 0.0
+        case = PopInput.from_dict(data)
+
+        with self.assertRaisesRegex(ValueError, "initialDiameterMeters"):
+            run_case(case)
+
     def test_cli_outputs_json(self):
         data = json.loads((ROOT / "tests/fixtures/na470-coursepack.input.json").read_text())
         data["mode"] = "evaluation"
