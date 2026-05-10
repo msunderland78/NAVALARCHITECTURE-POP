@@ -1,0 +1,16 @@
+services:
+  pop-backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    expose:
+      - "8080"
+
+  nginx:
+    image: nginx:1.27-alpine
+    depends_on:
+      - pop-backend
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro

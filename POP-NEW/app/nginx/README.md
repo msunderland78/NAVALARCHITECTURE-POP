@@ -1,3 +1,5 @@
 # POP NGINX
 
-This directory will hold NGINX deployment configuration for the POP web application.
+This directory contains the NGINX reverse-proxy configuration for the POP web application.
+
+The NGINX container proxies all requests to the Python backend service. The backend serves both the static frontend and the JSON API.

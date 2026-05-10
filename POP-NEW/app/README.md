@@ -1,6 +1,6 @@
 # POP Web Application
 
-This directory will contain the Linux-native replacement for the legacy POP desktop application.
+This directory contains the Linux-native replacement for the legacy POP desktop application.
 
 Planned layout:
 
@@ -9,3 +9,17 @@ Planned layout:
 - `nginx`: deployment configuration
 
 The production application must not depend on files from `POP-OLD`.
+
+Run locally without containers:
+
+```sh
+PYTHONPATH=POP-NEW/app/backend python3 POP-NEW/app/backend/pop_http.py --host 127.0.0.1 --port 8080
+```
+
+Run with Docker Compose from `POP-NEW/app`:
+
+```sh
+docker compose up --build
+```
+
+Open `http://127.0.0.1:8080/`.

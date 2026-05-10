@@ -1,0 +1,6 @@
+**/__pycache__/
+**/*.pyc
+../POP-OLD/
+../../POP-OLD/
+POP-OLD/
+*-OLD/
