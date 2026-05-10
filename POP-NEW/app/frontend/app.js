@@ -26,7 +26,7 @@ document.querySelector("#legacy-pop-file").addEventListener("change", async even
       headers: {"Content-Type": "application/octet-stream"},
       body: await file.arrayBuffer()
     });
-    const payload = await response.json();
+    const payload = await readJsonResponse(response);
     fillForm(payload.input);
     statusNode.textContent = "Imported";
   } catch (error) {
@@ -65,7 +65,7 @@ form.addEventListener("submit", async event => {
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify(readForm())
     });
-    latestPayload = await response.json();
+    latestPayload = await readJsonResponse(response);
     renderResults(latestPayload);
     statusNode.textContent = `${labelForMode(latestPayload.mode)} Complete`;
   } catch (error) {
@@ -302,6 +302,14 @@ function emptyCurveChart() {
 
 function number(data, key) {
   return Number(data.get(key));
+}
+
+async function readJsonResponse(response) {
+  const payload = await response.json();
+  if (!response.ok) {
+    throw new Error(payload.message || payload.error || "Request failed");
+  }
+  return payload;
 }
 
 function payloadToCsv(payload) {

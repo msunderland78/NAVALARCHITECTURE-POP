@@ -39,6 +39,12 @@ class FrontendStaticTests(unittest.TestCase):
         self.assertIn("downloadText", script)
         self.assertIn(".csv", script)
 
+    def test_frontend_checks_http_error_payloads(self):
+        script = (ROOT / "app/frontend/app.js").read_text()
+
+        self.assertIn("readJsonResponse", script)
+        self.assertIn("response.ok", script)
+
     def test_frontend_has_input_verification_view(self):
         script = (ROOT / "app/frontend/app.js").read_text()
 
