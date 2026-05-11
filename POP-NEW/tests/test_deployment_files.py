@@ -87,6 +87,14 @@ class DeploymentFileTests(unittest.TestCase):
         self.assertIn("requires-python = \">=3.12\"", text)
         self.assertIn("dependencies = []", text)
 
+    def test_ci_workflow_runs_tests_and_builds_image(self):
+        workflow = (ROOT.parent / ".github/workflows/ci.yml").read_text()
+
+        self.assertIn("python-version-file: POP-NEW/.python-version", workflow)
+        self.assertIn("python -m unittest discover -s tests", workflow)
+        self.assertIn("docker build -f POP-NEW/app/backend/Dockerfile", workflow)
+        self.assertIn("docker compose -f POP-NEW/app/docker-compose.yml config", workflow)
+
     def test_python_version_pin_present(self):
         text = (ROOT / ".python-version").read_text().strip()
 

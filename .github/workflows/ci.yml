@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: Python unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: POP-NEW/.python-version
+
+      - name: Run test suite
+        working-directory: POP-NEW
+        env:
+          PYTHONPATH: app/backend
+        run: python -m unittest discover -s tests -v
+
+  docker-build:
+    name: Backend container builds
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build backend image
+        run: docker build -f POP-NEW/app/backend/Dockerfile POP-NEW/app
+
+      - name: Validate compose config
+        run: docker compose -f POP-NEW/app/docker-compose.yml config
