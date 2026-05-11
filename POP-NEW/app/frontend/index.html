@@ -12,8 +12,67 @@
         <h1>Propeller Optimization Program</h1>
         <p>Wageningen B-series preliminary design</p>
       </div>
-      <div class="run-status" id="status">Ready</div>
+      <div class="topbar-actions">
+        <button id="methodology-button" type="button" class="topbar-button" aria-controls="methodology-panel" aria-expanded="false">Methodology</button>
+        <div class="run-status" id="status">Ready</div>
+      </div>
     </header>
+
+    <section id="methodology-panel" class="methodology-panel mode-hidden" aria-hidden="true">
+      <header class="methodology-head">
+        <h2>How POP for the Web computes a design</h2>
+        <button id="methodology-close" type="button" class="methodology-close" aria-label="Close methodology panel">&times;</button>
+      </header>
+      <div class="methodology-body">
+        <h3>Open-water polynomial</h3>
+        <p>
+          Thrust and torque coefficients <code>KT</code> and <code>KQ</code> are evaluated from the 39-term and 47-term polynomials in
+          <strong>Bernitsas, Ray, Kinley (1981)</strong>, Tables I and II, which reproduce <strong>Oosterveld and van Oossanen (1975)</strong>.
+          Inputs must lie inside the published valid range for <code>J</code>, <code>P/D</code>, <code>Ae/Ao</code>, and blade count <code>Z</code> in <code>[3, 7]</code>.
+          The implementation never extrapolates outside that domain.
+        </p>
+
+        <h3>Reynolds correction</h3>
+        <p>
+          The base polynomial is reported at <code>RN_ref = 2 x 10^6</code>. A second polynomial in <code>log10(RN / 2 x 10^6)</code>,
+          taken verbatim from Oosterveld and van Oossanen (1975), shifts <code>KT</code> and <code>KQ</code> to the operating Reynolds number.
+          The sectional <code>RN</code> is estimated from the <code>0.75R</code> tangential speed and a representative chord
+          <code>c_0.75R = 2.073 * Ae/Ao * D / Z</code> following <strong>Carlton (2012)</strong>. This puts our reported <code>RN</code> about 7% below the
+          legacy POP-1.5 fitted value but generalises to any blade count and area ratio.
+        </p>
+
+        <h3>Cavitation constraint</h3>
+        <p>
+          The Burrill back-cavitation criterion is a digitised lookup of the 5% and 10% allowable thrust-loading lines from
+          <strong>Carlton (2012), Figure 9.21</strong>, with linear interpolation in <code>sigma_0.7R</code> and linear blending between the two lines for
+          intermediate cavitation percentages. Designs whose loading exceeds the allowable line are rejected from the optimum search.
+        </p>
+
+        <h3>Optimization</h3>
+        <p>
+          In Optimization mode the search sweeps <code>Z</code> in <code>{3, 4, 5, 6, 7}</code>. For each <code>Z</code> a three-phase grid search over
+          <code>(D, P/D, Ae/Ao)</code> with 9 x 9 x 9 candidates per phase narrows around the previous-phase best. At every candidate the
+          advance coefficient <code>J</code> is solved by a 20-iteration bisection so predicted thrust matches required thrust. The result panel
+          shows both the global best and a per-<code>Z</code> table so blade-count selection becomes an output, not a separate user decision.
+        </p>
+
+        <h3>Controllable pitch</h3>
+        <p>
+          When Pitch Type is Controllable the open-water efficiency is multiplied by 0.98 as an empirical hub-loss allowance
+          carried over from POP-1.5. This is not a physical CPP hub-loss model. Real CPP hub losses depend on hub-to-diameter ratio
+          and blade root section.
+        </p>
+
+        <h3>Calibration status</h3>
+        <p>
+          The implementation is locked against transcription error by regression tests that pin landmark coefficients, the
+          Reynolds correction at the NA 470 sample point, and each digitised Burrill chart node. See
+          <code>analysis/wageningen-b-series-sources.md</code> in the repository for the full citation list and the test names.
+          POP for the Web is a preliminary design tool. Final propeller drawings, class approval, or model-test correlation
+          remain out of scope.
+        </p>
+      </div>
+    </section>
 
     <main class="workspace">
       <section class="input-panel">

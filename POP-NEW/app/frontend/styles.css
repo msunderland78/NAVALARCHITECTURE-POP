@@ -57,6 +57,81 @@ h3 {
   font-size: 14px;
 }
 
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.topbar-button {
+  min-height: 32px;
+  padding: 0 14px;
+  background: #1c3445;
+  color: #e9f4f7;
+  border: 1px solid #345566;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.topbar-button:hover {
+  background: #25445a;
+}
+
+.methodology-panel {
+  margin: 18px 18px 0;
+  padding: 18px 22px;
+  border: 1px solid #cfd6dc;
+  border-left: 4px solid #236f7b;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.methodology-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #e0e7ed;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+}
+
+.methodology-head h2 {
+  margin: 0;
+  font-size: 17px;
+  color: #1c3445;
+}
+
+.methodology-close {
+  background: transparent;
+  border: 0;
+  font-size: 22px;
+  line-height: 1;
+  color: #506574;
+  cursor: pointer;
+}
+
+.methodology-body p {
+  margin: 0 0 12px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: #2a3742;
+}
+
+.methodology-body h3 {
+  margin: 14px 0 6px;
+  font-size: 14px;
+  color: #1c3445;
+}
+
+.methodology-body code {
+  background: #eef2f5;
+  padding: 0 4px;
+  border-radius: 3px;
+  font-size: 12.5px;
+}
+
 .workspace {
   display: grid;
   grid-template-columns: minmax(320px, 440px) minmax(0, 1fr);
@@ -442,6 +517,7 @@ pre {
   .topbar,
   .input-panel,
   .result-actions,
+  .methodology-panel,
   #json-output {
     display: none;
   }

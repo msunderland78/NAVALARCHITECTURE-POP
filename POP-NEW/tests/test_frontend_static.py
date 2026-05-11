@@ -120,6 +120,18 @@ class FrontendStaticTests(unittest.TestCase):
         self.assertIn("error.hints", script)
         self.assertIn("error.nearest", script)
 
+    def test_frontend_has_methodology_panel(self):
+        html = (ROOT / "app/frontend/index.html").read_text()
+        script = (ROOT / "app/frontend/app.js").read_text()
+        styles = (ROOT / "app/frontend/styles.css").read_text()
+
+        self.assertIn('id="methodology-panel"', html)
+        self.assertIn('id="methodology-button"', html)
+        self.assertIn("Bernitsas", html)
+        self.assertIn("Carlton", html)
+        self.assertIn("setMethodologyOpen", script)
+        self.assertIn(".methodology-panel", styles)
+
     def test_frontend_has_stale_result_indicator(self):
         html = (ROOT / "app/frontend/index.html").read_text()
         script = (ROOT / "app/frontend/app.js").read_text()

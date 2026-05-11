@@ -14,6 +14,9 @@ const bladeSweepBody = document.querySelector("#blade-sweep-body");
 const warningsSection = document.querySelector("#warnings-section");
 const warningsList = document.querySelector("#warnings-list");
 const staleBadge = document.querySelector("#stale-badge");
+const methodologyButton = document.querySelector("#methodology-button");
+const methodologyPanel = document.querySelector("#methodology-panel");
+const methodologyClose = document.querySelector("#methodology-close");
 const WATER_PRESETS = {
   salt_15c: {densityKgM3: 1025.87, kinematicViscosityM2S: 0.00000118831},
   fresh_15c: {densityKgM3: 999.1, kinematicViscosityM2S: 0.000001139}
@@ -148,6 +151,26 @@ form.addEventListener("input", () => {
 function setStale(value) {
   staleBadge.classList.toggle("mode-hidden", !value);
 }
+
+function setMethodologyOpen(open) {
+  methodologyPanel.classList.toggle("mode-hidden", !open);
+  methodologyPanel.setAttribute("aria-hidden", open ? "false" : "true");
+  methodologyButton.setAttribute("aria-expanded", open ? "true" : "false");
+}
+
+methodologyButton.addEventListener("click", () => {
+  const open = methodologyPanel.classList.contains("mode-hidden");
+  setMethodologyOpen(open);
+  if (open) methodologyPanel.scrollIntoView({behavior: "smooth", block: "start"});
+});
+
+methodologyClose.addEventListener("click", () => setMethodologyOpen(false));
+
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape" && !methodologyPanel.classList.contains("mode-hidden")) {
+    setMethodologyOpen(false);
+  }
+});
 
 form.elements.mode.addEventListener("change", updateModeFields);
 form.elements.waterKind.addEventListener("change", () => {
