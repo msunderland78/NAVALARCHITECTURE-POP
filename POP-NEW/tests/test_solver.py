@@ -2,8 +2,10 @@ import json
 import unittest
 from pathlib import Path
 
+import numpy as np
+
 from pop_core import PopInput, estimate_reynolds_number, evaluate_design, evaluate_design_auto_reynolds, passes_burrill_constraint, solve_advance_coefficient_for_thrust
-from pop_core.solver import burrill_allowable_loading
+from pop_core.solver import burrill_allowable_loading, evaluate_designs_auto_reynolds_batch
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -137,6 +139,31 @@ class SolverTests(unittest.TestCase):
         )
 
         self.assertAlmostEqual(controllable.openWaterEfficiency, fixed.openWaterEfficiency * 0.98, delta=0.000001)
+
+
+    def test_batch_auto_reynolds_matches_scalar_evaluations(self):
+        case = PopInput.from_dict(json.loads((ROOT / "tests/fixtures/na470-coursepack.input.json").read_text()))
+        d = np.array([3.5, 4.0, 4.6])
+        pd = np.array([0.75, 0.8171, 0.9])
+        ae = np.array([0.55, 0.6293, 0.75])
+        z = np.full(3, 4.0)
+
+        batch = evaluate_designs_auto_reynolds_batch(case, d, pd, ae, z)
+
+        for i in range(3):
+            scalar = evaluate_design_auto_reynolds(case, float(d[i]), float(pd[i]), float(ae[i]))
+            self.assertAlmostEqual(scalar.openWaterEfficiency, float(batch.openWaterEfficiency[i]), places=8)
+            self.assertAlmostEqual(scalar.advanceCoefficient, float(batch.advanceCoefficient[i]), places=8)
+            self.assertAlmostEqual(scalar.thrustCoefficient, float(batch.thrustCoefficient[i]), places=8)
+            self.assertAlmostEqual(scalar.torqueCoefficient, float(batch.torqueCoefficient[i]), places=8)
+
+    def test_burrill_chart_accepts_numpy_array(self):
+        sigma = np.array([0.1, 0.4, 1.0])
+        result = burrill_allowable_loading(sigma, 5)
+        self.assertEqual(result.shape, (3,))
+        self.assertAlmostEqual(float(result[0]), 0.066, delta=0.001)
+        self.assertAlmostEqual(float(result[1]), 0.181, delta=0.001)
+        self.assertAlmostEqual(float(result[2]), 0.260, delta=0.001)
 
 
 if __name__ == "__main__":

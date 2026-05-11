@@ -3,6 +3,8 @@ FROM python:3.12.8-slim
 RUN groupadd --system --gid 10001 pop \
     && useradd --system --uid 10001 --gid pop --no-create-home --shell /usr/sbin/nologin pop
 
+RUN pip install --no-cache-dir --root-user-action=ignore "numpy~=2.2"
+
 WORKDIR /app
 
 COPY --chown=pop:pop backend /app/backend

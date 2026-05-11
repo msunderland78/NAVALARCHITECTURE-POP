@@ -3,10 +3,13 @@ name = "pop"
 version = "1.0.0"
 description = "Propeller Optimization Program for the Web"
 requires-python = ">=3.12"
-# Intentionally no runtime dependencies. The calculation core, OLE Compound
-# File reader, and HTTP server are built on the Python standard library only.
-# Adding a third-party dependency is a deliberate decision; record the reason.
-dependencies = []
+# numpy is the only runtime dependency. It is used to vectorise the
+# Wageningen polynomial and the optimizer's grid search, which would
+# otherwise dominate request latency. The HTTP server, OLE Compound File
+# reader, and the rest of the calculation core remain stdlib-only.
+dependencies = [
+    "numpy~=2.2"
+]
 
 [project.urls]
 homepage = "https://github.com/msunderland78/NAVALARCHITECTURE-POP"

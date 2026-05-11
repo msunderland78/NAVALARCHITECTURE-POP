@@ -2,6 +2,8 @@ import json
 import unittest
 from pathlib import Path
 
+import numpy as np
+
 from pop_core import wageningen_kq, wageningen_kq_corrected, wageningen_kq_reynolds_correction, wageningen_kt, wageningen_kt_corrected, wageningen_kt_reynolds_correction
 
 
@@ -58,6 +60,27 @@ class WageningenTests(unittest.TestCase):
 
         self.assertAlmostEqual(wageningen_kt_corrected(j, pd, aeao, blade_count, rn), expected["thrustCoefficient"], delta=0.0001)
         self.assertAlmostEqual(wageningen_kq_corrected(j, pd, aeao, blade_count, rn), expected["torqueCoefficient"], delta=0.00001)
+
+
+    def test_polynomial_accepts_array_inputs_and_matches_scalar(self):
+        j_arr = np.array([0.4, 0.5408, 0.7])
+        pd_arr = np.array([0.7, 0.8171, 0.9])
+        ae_arr = np.array([0.55, 0.6293, 0.7])
+        z_arr = np.array([4, 4, 4])
+        rn_arr = np.array([3.0e7, 3.68e7, 4.0e7])
+
+        batch_kt = wageningen_kt_corrected(j_arr, pd_arr, ae_arr, z_arr, rn_arr)
+        batch_kq = wageningen_kq_corrected(j_arr, pd_arr, ae_arr, z_arr, rn_arr)
+
+        for i in range(3):
+            scalar_kt = wageningen_kt_corrected(float(j_arr[i]), float(pd_arr[i]), float(ae_arr[i]), int(z_arr[i]), float(rn_arr[i]))
+            scalar_kq = wageningen_kq_corrected(float(j_arr[i]), float(pd_arr[i]), float(ae_arr[i]), int(z_arr[i]), float(rn_arr[i]))
+            self.assertAlmostEqual(float(batch_kt[i]), scalar_kt, places=12)
+            self.assertAlmostEqual(float(batch_kq[i]), scalar_kq, places=12)
+
+    def test_scalar_call_returns_python_float(self):
+        kt = wageningen_kt(0.5, 0.9, 0.65, 4)
+        self.assertIsInstance(kt, float)
 
 
 if __name__ == "__main__":

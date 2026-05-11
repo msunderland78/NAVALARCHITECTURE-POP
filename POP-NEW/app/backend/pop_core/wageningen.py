@@ -1,5 +1,6 @@
 from dataclasses import dataclass
-from math import log10
+
+import numpy as np
 
 
 @dataclass(frozen=True)
@@ -105,64 +106,104 @@ KQ_TERMS = [
 ]
 
 
-def wageningen_kt(j: float, pitch_diameter_ratio: float, expanded_area_ratio: float, blade_count: int) -> float:
-    return _evaluate(KT_TERMS, j, pitch_diameter_ratio, expanded_area_ratio, blade_count)
+def _pack(terms: list[PolynomialTerm]):
+    coeffs = np.array([t.coefficient for t in terms], dtype=np.float64)
+    j_pow = np.array([t.j_power for t in terms], dtype=np.int64)
+    pd_pow = np.array([t.pd_power for t in terms], dtype=np.int64)
+    ae_pow = np.array([t.aeao_power for t in terms], dtype=np.int64)
+    z_pow = np.array([t.blade_power for t in terms], dtype=np.int64)
+    return coeffs, j_pow, pd_pow, ae_pow, z_pow
 
 
-def wageningen_kq(j: float, pitch_diameter_ratio: float, expanded_area_ratio: float, blade_count: int) -> float:
-    return _evaluate(KQ_TERMS, j, pitch_diameter_ratio, expanded_area_ratio, blade_count)
+_KT_C, _KT_J, _KT_PD, _KT_AE, _KT_Z = _pack(KT_TERMS)
+_KQ_C, _KQ_J, _KQ_PD, _KQ_AE, _KQ_Z = _pack(KQ_TERMS)
 
 
-def wageningen_kt_reynolds_correction(j: float, pitch_diameter_ratio: float, expanded_area_ratio: float, blade_count: int, reynolds_number: float) -> float:
-    lr = log10(reynolds_number) - 0.301
-    return (
+def wageningen_kt(j, pitch_diameter_ratio, expanded_area_ratio, blade_count):
+    return _polynomial(j, pitch_diameter_ratio, expanded_area_ratio, blade_count, _KT_C, _KT_J, _KT_PD, _KT_AE, _KT_Z)
+
+
+def wageningen_kq(j, pitch_diameter_ratio, expanded_area_ratio, blade_count):
+    return _polynomial(j, pitch_diameter_ratio, expanded_area_ratio, blade_count, _KQ_C, _KQ_J, _KQ_PD, _KQ_AE, _KQ_Z)
+
+
+def wageningen_kt_reynolds_correction(j, pitch_diameter_ratio, expanded_area_ratio, blade_count, reynolds_number):
+    j, pd, ae, z, rn, scalar, shape = _broadcast_inputs(j, pitch_diameter_ratio, expanded_area_ratio, blade_count, reynolds_number)
+    lr = np.log10(rn) - 0.301
+    value = (
         0.000353485
-        - 0.00333758 * expanded_area_ratio * j ** 2
-        - 0.00478125 * expanded_area_ratio * pitch_diameter_ratio * j
-        + 0.000257792 * lr ** 2 * expanded_area_ratio * j ** 2
-        + 0.0000643192 * lr * pitch_diameter_ratio ** 6 * j ** 2
-        - 0.0000110636 * lr ** 2 * pitch_diameter_ratio ** 6 * j ** 2
-        - 0.0000276305 * lr ** 2 * blade_count * expanded_area_ratio * j ** 2
-        + 0.0000954 * lr * blade_count * expanded_area_ratio * pitch_diameter_ratio * j
-        + 0.0000032049 * lr * blade_count ** 2 * expanded_area_ratio * pitch_diameter_ratio ** 3 * j
+        - 0.00333758 * ae * j ** 2
+        - 0.00478125 * ae * pd * j
+        + 0.000257792 * lr ** 2 * ae * j ** 2
+        + 0.0000643192 * lr * pd ** 6 * j ** 2
+        - 0.0000110636 * lr ** 2 * pd ** 6 * j ** 2
+        - 0.0000276305 * lr ** 2 * z * ae * j ** 2
+        + 0.0000954 * lr * z * ae * pd * j
+        + 0.0000032049 * lr * z ** 2 * ae * pd ** 3 * j
     )
+    return _restore_shape(value, scalar, shape)
 
 
-def wageningen_kq_reynolds_correction(j: float, pitch_diameter_ratio: float, expanded_area_ratio: float, blade_count: int, reynolds_number: float) -> float:
-    lr = log10(reynolds_number) - 0.301
-    return (
+def wageningen_kq_reynolds_correction(j, pitch_diameter_ratio, expanded_area_ratio, blade_count, reynolds_number):
+    j, pd, ae, z, rn, scalar, shape = _broadcast_inputs(j, pitch_diameter_ratio, expanded_area_ratio, blade_count, reynolds_number)
+    lr = np.log10(rn) - 0.301
+    value = (
         -0.000591412
-        + 0.00696898 * pitch_diameter_ratio
-        - 0.0000666654 * blade_count * pitch_diameter_ratio ** 6
-        + 0.0160818 * expanded_area_ratio ** 2
-        - 0.000938091 * lr * pitch_diameter_ratio
-        - 0.00059593 * lr * pitch_diameter_ratio ** 2
-        + 0.0000782099 * lr ** 2 * pitch_diameter_ratio ** 2
-        + 0.0000052199 * lr * blade_count * expanded_area_ratio * j ** 2
-        - 0.00000088528 * lr ** 2 * blade_count * expanded_area_ratio * pitch_diameter_ratio * j
-        + 0.0000230171 * lr * blade_count * pitch_diameter_ratio ** 6
-        - 0.00000184341 * lr ** 2 * blade_count * pitch_diameter_ratio ** 6
-        - 0.00400252 * lr * expanded_area_ratio ** 2
-        + 0.000220915 * lr ** 2 * expanded_area_ratio ** 2
+        + 0.00696898 * pd
+        - 0.0000666654 * z * pd ** 6
+        + 0.0160818 * ae ** 2
+        - 0.000938091 * lr * pd
+        - 0.00059593 * lr * pd ** 2
+        + 0.0000782099 * lr ** 2 * pd ** 2
+        + 0.0000052199 * lr * z * ae * j ** 2
+        - 0.00000088528 * lr ** 2 * z * ae * pd * j
+        + 0.0000230171 * lr * z * pd ** 6
+        - 0.00000184341 * lr ** 2 * z * pd ** 6
+        - 0.00400252 * lr * ae ** 2
+        + 0.000220915 * lr ** 2 * ae ** 2
     )
+    return _restore_shape(value, scalar, shape)
 
 
-def wageningen_kt_corrected(j: float, pitch_diameter_ratio: float, expanded_area_ratio: float, blade_count: int, reynolds_number: float) -> float:
+def wageningen_kt_corrected(j, pitch_diameter_ratio, expanded_area_ratio, blade_count, reynolds_number):
     return wageningen_kt(j, pitch_diameter_ratio, expanded_area_ratio, blade_count) + wageningen_kt_reynolds_correction(j, pitch_diameter_ratio, expanded_area_ratio, blade_count, reynolds_number)
 
 
-def wageningen_kq_corrected(j: float, pitch_diameter_ratio: float, expanded_area_ratio: float, blade_count: int, reynolds_number: float) -> float:
+def wageningen_kq_corrected(j, pitch_diameter_ratio, expanded_area_ratio, blade_count, reynolds_number):
     return wageningen_kq(j, pitch_diameter_ratio, expanded_area_ratio, blade_count) + wageningen_kq_reynolds_correction(j, pitch_diameter_ratio, expanded_area_ratio, blade_count, reynolds_number)
 
 
-def _evaluate(terms: list[PolynomialTerm], j: float, pitch_diameter_ratio: float, expanded_area_ratio: float, blade_count: int) -> float:
-    total = 0.0
-    for term in terms:
-        total += (
-            term.coefficient
-            * j ** term.j_power
-            * pitch_diameter_ratio ** term.pd_power
-            * expanded_area_ratio ** term.aeao_power
-            * blade_count ** term.blade_power
-        )
-    return total
+def _polynomial(j, pd, ae, z, coeffs, j_pow, pd_pow, ae_pow, z_pow):
+    j_arr, pd_arr, ae_arr, z_arr, scalar, shape = _broadcast4(j, pd, ae, z)
+    contrib = (
+        coeffs
+        * j_arr[:, None] ** j_pow
+        * pd_arr[:, None] ** pd_pow
+        * ae_arr[:, None] ** ae_pow
+        * z_arr[:, None] ** z_pow
+    )
+    value = contrib.sum(axis=1)
+    return _restore_shape(value, scalar, shape)
+
+
+def _broadcast4(j, pd, ae, z):
+    j_a, pd_a, ae_a, z_a = (np.asarray(x, dtype=np.float64) for x in (j, pd, ae, z))
+    scalar = all(arr.ndim == 0 for arr in (j_a, pd_a, ae_a, z_a))
+    j_b, pd_b, ae_b, z_b = np.broadcast_arrays(j_a, pd_a, ae_a, z_a)
+    shape = j_b.shape
+    return j_b.ravel(), pd_b.ravel(), ae_b.ravel(), z_b.ravel(), scalar, shape
+
+
+def _broadcast_inputs(j, pd, ae, z, rn):
+    j_a, pd_a, ae_a, z_a, rn_a = (np.asarray(x, dtype=np.float64) for x in (j, pd, ae, z, rn))
+    scalar = all(arr.ndim == 0 for arr in (j_a, pd_a, ae_a, z_a, rn_a))
+    j_b, pd_b, ae_b, z_b, rn_b = np.broadcast_arrays(j_a, pd_a, ae_a, z_a, rn_a)
+    shape = j_b.shape
+    return j_b, pd_b, ae_b, z_b, rn_b, scalar, shape
+
+
+def _restore_shape(value, scalar, shape):
+    arr = np.asarray(value).reshape(shape) if shape else np.asarray(value)
+    if scalar:
+        return float(arr.item() if arr.shape == () else arr.reshape(-1)[0])
+    return arr

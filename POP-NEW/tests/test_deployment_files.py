@@ -80,12 +80,18 @@ class DeploymentFileTests(unittest.TestCase):
         self.assertIn("location /api/run", config)
         self.assertIn("limit_req zone=pop_run", config)
 
-    def test_pyproject_declares_no_runtime_deps(self):
+    def test_pyproject_declares_numpy_runtime_dep(self):
         text = (ROOT / "pyproject.toml").read_text()
 
         self.assertIn("name = \"pop\"", text)
         self.assertIn("requires-python = \">=3.12\"", text)
-        self.assertIn("dependencies = []", text)
+        self.assertIn("numpy~=2.2", text)
+
+    def test_dockerfile_installs_numpy(self):
+        dockerfile = (ROOT / "app/backend/Dockerfile").read_text()
+
+        self.assertIn("pip install --no-cache-dir", dockerfile)
+        self.assertIn("numpy~=2.2", dockerfile)
 
     def test_ci_workflow_runs_tests_and_builds_image(self):
         workflow = (ROOT.parent / ".github/workflows/ci.yml").read_text()
