@@ -17,6 +17,34 @@ class WageningenTests(unittest.TestCase):
         self.assertEqual(len(KT_TERMS), 39)
         self.assertEqual(len(KQ_TERMS), 47)
 
+    def test_landmark_coefficients_match_published_values(self):
+        # Spot-check coefficients from Bernitsas, Ray, Kinley (1981), Tables I and II.
+        # If any of these drift, the polynomial has been retabled and the
+        # provenance doc must be updated to match.
+        from pop_core.wageningen import KT_TERMS, KQ_TERMS
+
+        kt_index = {(t.j_power, t.pd_power, t.aeao_power, t.blade_power): t.coefficient for t in KT_TERMS}
+        kq_index = {(t.j_power, t.pd_power, t.aeao_power, t.blade_power): t.coefficient for t in KQ_TERMS}
+
+        landmark_kt = {
+            (0, 0, 0, 0): 0.00880496,
+            (1, 0, 0, 0): -0.204554,
+            (0, 1, 0, 0): 0.166351,
+            (0, 2, 0, 0): 0.158114,
+            (0, 0, 0, 2): -0.000606848,
+        }
+        landmark_kq = {
+            (0, 0, 0, 0): 0.00379368,
+            (2, 0, 0, 0): 0.00886523,
+            (1, 1, 0, 0): -0.032241,
+            (0, 6, 1, 1): -0.00142121,
+            (1, 6, 2, 2): 0.0000554194,
+        }
+        for exponents, value in landmark_kt.items():
+            self.assertAlmostEqual(kt_index[exponents], value, places=8, msg=f"KT[{exponents}]")
+        for exponents, value in landmark_kq.items():
+            self.assertAlmostEqual(kq_index[exponents], value, places=8, msg=f"KQ[{exponents}]")
+
     def test_na470_base_polynomial_point(self):
         case = json.loads((ROOT / "tests/fixtures/na470-coursepack.input.json").read_text())
         expected = json.loads((ROOT / "tests/golden/na470-coursepack.output.json").read_text())["results"]
