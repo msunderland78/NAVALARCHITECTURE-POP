@@ -6,7 +6,7 @@ from .models import PopInput
 from .wageningen import wageningen_kq_corrected, wageningen_kt_corrected
 
 
-SECTION_CHORD_FACTOR = 2.21926629468588
+SECTION_CHORD_FACTOR = 2.073
 
 
 @dataclass(frozen=True)
