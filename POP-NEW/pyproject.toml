@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "pop"
 version = "1.0.0"
@@ -13,3 +17,10 @@ dependencies = [
 
 [project.urls]
 homepage = "https://github.com/msunderland78/NAVALARCHITECTURE-POP"
+
+# The project layout is not an importable package. pop_core lives under
+# app/backend/ and is reached via PYTHONPATH. Declare no modules so
+# `pip install .` only installs the declared dependencies.
+[tool.setuptools]
+py-modules = []
+packages = []
