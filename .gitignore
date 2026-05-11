@@ -1,5 +1,6 @@
 *-OLD/
 __pycache__/
 *.pyc
+*.egg-info/
 POP-NEW/app/.env
 POP-NEW/app/certs/
