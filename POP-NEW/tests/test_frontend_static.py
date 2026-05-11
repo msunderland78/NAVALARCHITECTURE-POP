@@ -76,6 +76,16 @@ class FrontendStaticTests(unittest.TestCase):
         self.assertIn("applyWaterPreset", script)
         self.assertIn("markCustomWater", script)
 
+    def test_frontend_has_controllable_pitch_banner(self):
+        html = (ROOT / "app/frontend/index.html").read_text()
+        script = (ROOT / "app/frontend/app.js").read_text()
+        styles = (ROOT / "app/frontend/styles.css").read_text()
+
+        self.assertIn('id="cpp-banner"', html)
+        self.assertIn("empirical hub-loss", html)
+        self.assertIn("updateCppBanner", script)
+        self.assertIn(".cpp-banner", styles)
+
 
 if __name__ == "__main__":
     unittest.main()

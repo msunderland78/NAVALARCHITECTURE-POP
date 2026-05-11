@@ -8,6 +8,7 @@ const curveChart = document.querySelector("#curve-chart");
 const runButton = document.querySelector("#run-button");
 const resultMode = document.querySelector("#result-mode");
 const verificationTable = document.querySelector("#verification-table");
+const cppBanner = document.querySelector("#cpp-banner");
 const WATER_PRESETS = {
   salt_15c: {densityKgM3: 1025.87, kinematicViscosityM2S: 0.00000118831},
   fresh_15c: {densityKgM3: 999.1, kinematicViscosityM2S: 0.000001139}
@@ -88,6 +89,7 @@ form.addEventListener("submit", async event => {
 
 form.addEventListener("input", () => {
   updateModeFields();
+  updateCppBanner();
   renderVerification(readForm());
   renderPropeller({
     diameterMeters: Number(form.elements.initialDiameterMeters.value),
@@ -152,6 +154,7 @@ function fillForm(data) {
   form.elements.burrillBackCavitationPercent.value = data.burrillBackCavitationPercent;
   statusNode.textContent = "Sample Loaded";
   updateModeFields();
+  updateCppBanner();
   renderVerification(readForm());
   renderPropeller({
     diameterMeters: data.initialDiameterMeters,
@@ -403,6 +406,10 @@ function escapeHtml(value) {
   }[character]));
 }
 
+function updateCppBanner() {
+  cppBanner.classList.toggle("mode-hidden", form.elements.pitchType.value !== "controllable");
+}
+
 function updateModeFields() {
   const mode = form.elements.mode.value;
   document.querySelectorAll("[data-mode-field]").forEach(node => {
@@ -421,6 +428,7 @@ function labelForMode(mode) {
 }
 
 updateModeFields();
+updateCppBanner();
 renderVerification(readForm());
 renderPropeller({
   diameterMeters: Number(form.elements.initialDiameterMeters.value),

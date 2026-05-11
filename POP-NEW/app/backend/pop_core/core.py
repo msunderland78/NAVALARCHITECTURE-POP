@@ -36,6 +36,8 @@ def open_water_efficiency(advance_coefficient_value: float, thrust_coefficient_v
 
 
 def pitch_type_efficiency_factor(case: PopInput) -> float:
+    # 0.98 matches the legacy POP-1.5 string "Eta 0 Reduced by 2% When Controllable Pitch".
+    # It is an empirical hub-loss allowance, not a physical CPP model. Real CPP losses depend on hub ratio.
     return 0.98 if case.pitchType == "controllable" else 1.0
 
 
