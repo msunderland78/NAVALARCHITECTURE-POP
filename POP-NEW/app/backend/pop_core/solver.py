@@ -85,14 +85,31 @@ def burrill_loading(case: PopInput, diameter_meters: float, expanded_area_ratio:
     return required_thrust_newtons(case) / (0.5 * case.water.densityKgM3 * section_speed ** 2 * disk_area * expanded_area_ratio)
 
 
+BURRILL_SIGMA = (0.10, 0.20, 0.30, 0.40, 0.50, 0.60, 0.80, 1.00, 1.50, 2.00, 3.00)
+BURRILL_TAUC_5PCT = (0.066, 0.118, 0.155, 0.181, 0.201, 0.218, 0.243, 0.260, 0.286, 0.301, 0.320)
+BURRILL_TAUC_10PCT = (0.086, 0.148, 0.188, 0.219, 0.242, 0.260, 0.287, 0.306, 0.336, 0.354, 0.380)
+
+
 def burrill_allowable_loading(cavitation_number_value: float, cavitation_percent: int) -> float:
+    tau5 = _interpolate(cavitation_number_value, BURRILL_SIGMA, BURRILL_TAUC_5PCT)
+    tau10 = _interpolate(cavitation_number_value, BURRILL_SIGMA, BURRILL_TAUC_10PCT)
     if cavitation_percent <= 5:
-        factor = 0.26
-    elif cavitation_percent >= 10:
-        factor = 0.32
-    else:
-        factor = 0.26 + (cavitation_percent - 5) * (0.32 - 0.26) / 5.0
-    return factor * cavitation_number_value
+        return tau5
+    if cavitation_percent >= 10:
+        return tau10
+    return tau5 + (cavitation_percent - 5) * (tau10 - tau5) / 5.0
+
+
+def _interpolate(x: float, xs: tuple[float, ...], ys: tuple[float, ...]) -> float:
+    if x <= xs[0]:
+        return ys[0]
+    if x >= xs[-1]:
+        return ys[-1]
+    for i in range(len(xs) - 1):
+        if xs[i] <= x <= xs[i + 1]:
+            t = (x - xs[i]) / (xs[i + 1] - xs[i])
+            return ys[i] + t * (ys[i + 1] - ys[i])
+    return ys[-1]
 
 
 def passes_burrill_constraint(result: DesignEvaluation, cavitation_percent: int) -> bool:

@@ -3,6 +3,7 @@ import unittest
 from pathlib import Path
 
 from pop_core import PopInput, estimate_reynolds_number, evaluate_design, evaluate_design_auto_reynolds, passes_burrill_constraint, solve_advance_coefficient_for_thrust
+from pop_core.solver import burrill_allowable_loading
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -68,6 +69,51 @@ class SolverTests(unittest.TestCase):
         self.assertAlmostEqual(result.advanceCoefficient, expected["advanceCoefficient"], delta=0.001)
         self.assertAlmostEqual(result.rpm, expected["rpm"], delta=0.5)
         self.assertTrue(passes_burrill_constraint(result, case.burrillBackCavitationPercent))
+
+    def test_burrill_chart_returns_table_values_at_node_points(self):
+        self.assertAlmostEqual(burrill_allowable_loading(0.10, 5), 0.066, delta=0.001)
+        self.assertAlmostEqual(burrill_allowable_loading(0.40, 5), 0.181, delta=0.001)
+        self.assertAlmostEqual(burrill_allowable_loading(1.00, 5), 0.260, delta=0.001)
+        self.assertAlmostEqual(burrill_allowable_loading(0.40, 10), 0.219, delta=0.001)
+        self.assertAlmostEqual(burrill_allowable_loading(1.00, 10), 0.306, delta=0.001)
+
+    def test_burrill_chart_interpolates_between_nodes(self):
+        self.assertAlmostEqual(burrill_allowable_loading(0.45, 5), (0.181 + 0.201) / 2.0, delta=0.001)
+        self.assertAlmostEqual(burrill_allowable_loading(0.45, 10), (0.219 + 0.242) / 2.0, delta=0.001)
+
+    def test_burrill_chart_blends_between_5_and_10_percent(self):
+        five = burrill_allowable_loading(0.50, 5)
+        ten = burrill_allowable_loading(0.50, 10)
+        self.assertAlmostEqual(burrill_allowable_loading(0.50, 7), five + 0.4 * (ten - five), delta=0.001)
+
+    def test_burrill_chart_clamps_outside_table_bounds(self):
+        self.assertEqual(burrill_allowable_loading(0.05, 5), burrill_allowable_loading(0.10, 5))
+        self.assertEqual(burrill_allowable_loading(5.00, 5), burrill_allowable_loading(3.00, 5))
+
+    def test_cavitation_active_case_respects_chart_limit(self):
+        case = PopInput.from_dict({
+            "projectName": "burrill-active",
+            "runId": "cav-1",
+            "mode": "evaluation",
+            "series": "wageningen_b",
+            "pitchType": "fixed",
+            "bladeCount": 4,
+            "initialExpandedAreaRatio": 0.35,
+            "initialPitchDiameterRatio": 0.9,
+            "initialDiameterMeters": 3.0,
+            "diameterMinMeters": 2.0,
+            "diameterMaxMeters": 4.0,
+            "requiredThrustKn": 400.0,
+            "shipSpeedKnots": 12.0,
+            "wakeFraction": 0.0,
+            "shaftDepthMeters": 2.0,
+            "water": {"kind": "salt_15c", "densityKgM3": 1025.87, "kinematicViscosityM2S": 0.00000118831},
+            "burrillBackCavitationPercent": 5
+        })
+        result = evaluate_design_auto_reynolds(case, 3.0, 0.9, 0.35)
+        allowable = burrill_allowable_loading(result.cavitationNumber, 5)
+        self.assertGreater(result.burrillLoading, allowable)
+        self.assertFalse(passes_burrill_constraint(result, 5))
 
     def test_controllable_pitch_reduces_efficiency_by_two_percent(self):
         fixed_data = json.loads((ROOT / "tests/fixtures/na470-coursepack.input.json").read_text())
