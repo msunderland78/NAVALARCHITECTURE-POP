@@ -11,9 +11,26 @@ const verificationTable = document.querySelector("#verification-table");
 const cppBanner = document.querySelector("#cpp-banner");
 const bladeSweepSection = document.querySelector("#blade-sweep-section");
 const bladeSweepBody = document.querySelector("#blade-sweep-body");
+const warningsSection = document.querySelector("#warnings-section");
+const warningsList = document.querySelector("#warnings-list");
 const WATER_PRESETS = {
   salt_15c: {densityKgM3: 1025.87, kinematicViscosityM2S: 0.00000118831},
   fresh_15c: {densityKgM3: 999.1, kinematicViscosityM2S: 0.000001139}
+};
+const FIELD_RULES = {
+  bladeCount: {min: 3, max: 7, integer: true, label: "Blades must be an integer 3-7"},
+  initialExpandedAreaRatio: {min: 0.3, max: 1.05, label: "Ae/Ao must be 0.3-1.05", modes: ["evaluation"]},
+  initialPitchDiameterRatio: {min: 0.5, max: 1.4, label: "P/D must be 0.5-1.4", modes: ["evaluation"]},
+  initialDiameterMeters: {min: 0.001, label: "Diameter must be > 0", modes: ["evaluation"]},
+  diameterMinMeters: {min: 0.001, label: "D Min must be > 0", modes: ["optimization"]},
+  diameterMaxMeters: {min: 0.001, label: "D Max must be > 0", modes: ["optimization"]},
+  requiredThrustKn: {min: 0.001, label: "Required thrust must be > 0"},
+  shipSpeedKnots: {min: 0.001, label: "Ship speed must be > 0"},
+  wakeFraction: {min: 0, max: 0.9, label: "Wake fraction must be 0-0.9"},
+  shaftDepthMeters: {min: 0, label: "Shaft depth must be >= 0"},
+  densityKgM3: {min: 0.001, label: "Water density must be > 0"},
+  kinematicViscosityM2S: {min: 1e-12, label: "Kinematic viscosity must be > 0"},
+  burrillBackCavitationPercent: {min: 0, max: 100, label: "Cavitation percent must be 0-100"}
 };
 let latestPayload = null;
 
@@ -64,12 +81,16 @@ document.querySelector("#download-csv").addEventListener("click", () => {
 
 document.querySelector("#print-report").addEventListener("click", () => {
   if (!latestPayload) return;
-  statusNode.textContent = "PDF Ready";
+  statusNode.textContent = "Print Ready";
   window.print();
 });
 
 form.addEventListener("submit", async event => {
   event.preventDefault();
+  if (Object.keys(validateForm()).length > 0) {
+    statusNode.textContent = "Fix Invalid Fields";
+    return;
+  }
   runButton.disabled = true;
   statusNode.textContent = "Running";
   try {
@@ -85,7 +106,7 @@ form.addEventListener("submit", async event => {
     statusNode.textContent = "Run Failed";
     jsonOutput.textContent = String(error);
   } finally {
-    runButton.disabled = false;
+    validateForm();
   }
 });
 
@@ -93,6 +114,7 @@ form.addEventListener("input", () => {
   updateModeFields();
   updateCppBanner();
   renderVerification(readForm());
+  validateForm();
   renderPropeller({
     diameterMeters: Number(form.elements.initialDiameterMeters.value),
     expandedAreaRatio: Number(form.elements.initialExpandedAreaRatio.value),
@@ -107,6 +129,62 @@ form.elements.waterKind.addEventListener("change", () => {
 });
 form.elements.densityKgM3.addEventListener("input", markCustomWater);
 form.elements.kinematicViscosityM2S.addEventListener("input", markCustomWater);
+
+function validateForm() {
+  const input = readForm();
+  const errors = collectValidationErrors(input);
+  applyFieldErrors(errors);
+  runButton.disabled = Object.keys(errors).length > 0;
+  runButton.title = runButton.disabled ? "Fix the highlighted fields before running" : "";
+  return errors;
+}
+
+function collectValidationErrors(input) {
+  const errors = {};
+  for (const [name, rule] of Object.entries(FIELD_RULES)) {
+    if (rule.modes && !rule.modes.includes(input.mode)) continue;
+    const value = name in input ? input[name] : input.water?.[name];
+    if (!Number.isFinite(value)) {
+      errors[name] = `${name} must be a number`;
+      continue;
+    }
+    if (rule.integer && !Number.isInteger(value)) {
+      errors[name] = rule.label;
+      continue;
+    }
+    if (rule.min !== undefined && value < rule.min) errors[name] = rule.label;
+    if (rule.max !== undefined && value > rule.max) errors[name] = rule.label;
+  }
+  if (input.mode === "optimization" && Number.isFinite(input.diameterMinMeters) && Number.isFinite(input.diameterMaxMeters) && input.diameterMinMeters > input.diameterMaxMeters) {
+    errors.diameterMaxMeters = "D Max must be >= D Min";
+  }
+  if (!["fixed", "controllable"].includes(input.pitchType)) errors.pitchType = "Pitch type must be fixed or controllable";
+  if (!["evaluation", "optimization"].includes(input.mode)) errors.mode = "Mode must be evaluation or optimization";
+  return errors;
+}
+
+function applyFieldErrors(errors) {
+  for (const name of Object.keys(FIELD_RULES)) {
+    const node = form.elements[name];
+    if (!node) continue;
+    const label = node.closest("label");
+    const hasError = name in errors;
+    node.classList.toggle("invalid", hasError);
+    if (label) {
+      let hint = label.querySelector(".field-error");
+      if (hasError) {
+        if (!hint) {
+          hint = document.createElement("span");
+          hint.className = "field-error";
+          label.appendChild(hint);
+        }
+        hint.textContent = errors[name];
+      } else if (hint) {
+        hint.remove();
+      }
+    }
+  }
+}
 
 function readForm() {
   const data = new FormData(form);
@@ -157,6 +235,7 @@ function fillForm(data) {
   statusNode.textContent = "Sample Loaded";
   updateModeFields();
   updateCppBanner();
+  validateForm();
   renderVerification(readForm());
   renderPropeller({
     diameterMeters: data.initialDiameterMeters,
@@ -190,6 +269,19 @@ function renderResults(payload) {
   renderCurveChart(payload.curves, payload.mode);
   renderChart(rounded);
   renderBladeSweep(payload.bladeSweep);
+  renderWarnings(payload.warnings);
+}
+
+function renderWarnings(warnings) {
+  if (!warnings || !warnings.length) {
+    warningsSection.classList.add("mode-hidden");
+    warningsList.innerHTML = "";
+    return;
+  }
+  warningsSection.classList.remove("mode-hidden");
+  warningsList.innerHTML = warnings.map(w =>
+    `<li class="level-${escapeHtml(w.level)}" data-code="${escapeHtml(w.code)}">${escapeHtml(w.message)}</li>`
+  ).join("");
 }
 
 function renderBladeSweep(sweep) {
@@ -448,6 +540,7 @@ function labelForMode(mode) {
 
 updateModeFields();
 updateCppBanner();
+validateForm();
 renderVerification(readForm());
 renderPropeller({
   diameterMeters: Number(form.elements.initialDiameterMeters.value),

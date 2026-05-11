@@ -76,6 +76,38 @@ class FrontendStaticTests(unittest.TestCase):
         self.assertIn("applyWaterPreset", script)
         self.assertIn("markCustomWater", script)
 
+    def test_frontend_renders_warnings_section(self):
+        html = (ROOT / "app/frontend/index.html").read_text()
+        script = (ROOT / "app/frontend/app.js").read_text()
+        styles = (ROOT / "app/frontend/styles.css").read_text()
+
+        self.assertIn('id="warnings-section"', html)
+        self.assertIn('id="warnings-list"', html)
+        self.assertIn("renderWarnings", script)
+        self.assertIn("level-warning", styles)
+        self.assertIn("level-info", styles)
+
+    def test_frontend_has_client_side_validation(self):
+        script = (ROOT / "app/frontend/app.js").read_text()
+        styles = (ROOT / "app/frontend/styles.css").read_text()
+
+        self.assertIn("FIELD_RULES", script)
+        self.assertIn("collectValidationErrors", script)
+        self.assertIn("applyFieldErrors", script)
+        self.assertIn("validateForm", script)
+        self.assertIn("runButton.disabled", script)
+        self.assertIn("input.invalid", styles)
+        self.assertIn(".field-error", styles)
+
+    def test_print_button_uses_print_label(self):
+        html = (ROOT / "app/frontend/index.html").read_text()
+        script = (ROOT / "app/frontend/app.js").read_text()
+
+        self.assertIn(">Print<", html)
+        self.assertNotIn(">PDF<", html)
+        self.assertIn("Print Ready", script)
+        self.assertNotIn("PDF Ready", script)
+
     def test_frontend_renders_blade_sweep_table(self):
         html = (ROOT / "app/frontend/index.html").read_text()
         script = (ROOT / "app/frontend/app.js").read_text()

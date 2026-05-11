@@ -41,6 +41,43 @@ class ServiceTests(unittest.TestCase):
         self.assertAlmostEqual(z4["pitchDiameterRatio"], 0.8171, delta=0.02)
         self.assertAlmostEqual(z4["expandedAreaRatio"], 0.6293, delta=0.04)
 
+    def test_payload_includes_warnings_list(self):
+        case = PopInput.from_dict(json.loads((ROOT / "tests/fixtures/na470-coursepack.input.json").read_text()))
+        payload = result_payload(case, run_case(case))
+
+        self.assertIn("warnings", payload)
+        self.assertIsInstance(payload["warnings"], list)
+        codes = {w["code"] for w in payload["warnings"]}
+        self.assertIn("diameter_pinned_max", codes)
+        for warning in payload["warnings"]:
+            self.assertIn(warning["level"], {"warning", "info"})
+            self.assertIsInstance(warning["message"], str)
+            self.assertTrue(warning["message"])
+
+    def test_payload_warns_when_cavitation_exceeds_limit(self):
+        data = json.loads((ROOT / "tests/fixtures/na470-coursepack.input.json").read_text())
+        data["mode"] = "evaluation"
+        data["initialDiameterMeters"] = 3.0
+        data["initialPitchDiameterRatio"] = 0.9
+        data["initialExpandedAreaRatio"] = 0.35
+        case = PopInput.from_dict(data)
+
+        payload = result_payload(case, run_case(case))
+        codes = {w["code"] for w in payload["warnings"]}
+
+        self.assertIn("cavitation_exceeds_limit", codes)
+
+    def test_payload_warns_for_controllable_pitch(self):
+        data = json.loads((ROOT / "tests/fixtures/na470-coursepack.input.json").read_text())
+        data["mode"] = "evaluation"
+        data["pitchType"] = "controllable"
+        case = PopInput.from_dict(data)
+
+        payload = result_payload(case, run_case(case))
+        codes = {w["code"] for w in payload["warnings"]}
+
+        self.assertIn("cpp_empirical", codes)
+
     def test_blade_sweep_covers_all_five_blade_counts(self):
         case = PopInput.from_dict(json.loads((ROOT / "tests/fixtures/na470-coursepack.input.json").read_text()))
         payload = result_payload(case, run_case(case))

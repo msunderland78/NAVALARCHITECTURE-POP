@@ -241,6 +241,66 @@ button:disabled {
   background: #fbecec;
 }
 
+input.invalid,
+select.invalid {
+  border-color: #c4391b;
+  background: #fdf2ef;
+  outline: none;
+}
+
+input.invalid:focus,
+select.invalid:focus {
+  border-color: #8e2410;
+  box-shadow: 0 0 0 2px rgba(196, 57, 27, 0.18);
+}
+
+.field-error {
+  margin-top: 4px;
+  display: block;
+  color: #8e2410;
+  font-size: 11px;
+}
+
+.warnings {
+  margin: 14px 16px 0;
+  padding: 10px 14px;
+  border: 1px solid #cfd6dc;
+  border-radius: 6px;
+  background: #fbfcfd;
+}
+
+.warnings h3 {
+  margin: 0 0 6px;
+  font-size: 14px;
+}
+
+.warnings ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.warnings li {
+  padding: 6px 10px;
+  margin-bottom: 4px;
+  border-left: 4px solid #ccd2d8;
+  border-radius: 4px;
+  font-size: 13px;
+  background: #ffffff;
+}
+
+.warnings li.level-warning {
+  border-left-color: #c4391b;
+  background: #fbecec;
+  color: #7b2010;
+}
+
+.warnings li.level-info {
+  border-left-color: #2f7d8c;
+  background: #eaf3f5;
+  color: #1c4f57;
+}
+
 .cpp-banner {
   margin: 14px 16px 0;
   padding: 10px 14px;
