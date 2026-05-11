@@ -66,8 +66,21 @@ class FrontendStaticTests(unittest.TestCase):
     def test_frontend_escapes_rendered_table_values(self):
         script = (ROOT / "app/frontend/app.js").read_text()
 
-        self.assertIn("resultTable.innerHTML = rows.map(([name, value]) => `<tr><td>${escapeHtml(name)}</td><td>${escapeHtml(value)}</td></tr>`).join(\"\");", script)
-        self.assertIn("verificationTable.innerHTML = rows.map(([name, value]) => `<tr><td>${escapeHtml(name)}</td><td>${escapeHtml(value)}</td></tr>`).join(\"\");", script)
+        for context_node in ("resultTable", "verificationTable"):
+            assignment = self._innerhtml_assignment(script, context_node)
+            self.assertIn("escapeHtml(name)", assignment, f"{context_node} should escape the cell label")
+            self.assertIn("escapeHtml(value)", assignment, f"{context_node} should escape the cell value")
+        self.assertNotIn("resultTable.innerHTML = `<", script)
+        self.assertNotIn("verificationTable.innerHTML = `<", script)
+
+    @staticmethod
+    def _innerhtml_assignment(script: str, node_name: str) -> str:
+        marker = f"{node_name}.innerHTML"
+        index = script.find(marker)
+        if index < 0:
+            return ""
+        end = script.find(";", index)
+        return script[index:end if end >= 0 else len(script)]
 
     def test_frontend_applies_water_presets(self):
         script = (ROOT / "app/frontend/app.js").read_text()
