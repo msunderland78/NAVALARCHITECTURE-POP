@@ -69,6 +69,17 @@ class DeploymentFileTests(unittest.TestCase):
         self.assertIn("proxy_pass http://pop_backend", config)
         self.assertIn("client_max_body_size 2m", config)
 
+    def test_nginx_hardening_directives(self):
+        config = (ROOT / "app/nginx/nginx.conf").read_text()
+
+        self.assertIn("server_tokens off", config)
+        self.assertIn("listen [::]:80", config)
+        self.assertIn("proxy_connect_timeout", config)
+        self.assertIn("proxy_read_timeout", config)
+        self.assertIn("limit_req_zone", config)
+        self.assertIn("location /api/run", config)
+        self.assertIn("limit_req zone=pop_run", config)
+
     def test_pyproject_declares_no_runtime_deps(self):
         text = (ROOT / "pyproject.toml").read_text()
 
