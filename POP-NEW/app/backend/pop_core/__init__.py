@@ -1,7 +1,7 @@
 from .core import advance_coefficient, advance_speed_mps, cavitation_number, open_water_efficiency, pitch_meters, pitch_type_efficiency_factor, propeller_open_water_efficiency, required_thrust_newtons, revolutions_per_second, thrust_coefficient
 from .legacy_pop import parse_legacy_input, parse_legacy_output, read_legacy_pop_text, read_legacy_pop_text_bytes
 from .models import PopInput, Water, validate_case
-from .optimizer import BladeSweepEntry, BladeSweepResult, DEFAULT_BLADE_SWEEP, OptimizationResult, optimize_design, optimize_design_with_blade_sweep
+from .optimizer import BladeSweepEntry, BladeSweepResult, DEFAULT_BLADE_SWEEP, NoFeasibleDesignError, OptimizationResult, optimize_design, optimize_design_with_blade_sweep
 from .service import PopRunResult, result_payload, run_case
 from .solver import DesignEvaluation, burrill_allowable_loading, burrill_loading, estimate_reynolds_number, evaluate_design, evaluate_design_auto_reynolds, passes_burrill_constraint, solve_advance_coefficient_for_thrust
 from .wageningen import wageningen_kq, wageningen_kq_corrected, wageningen_kq_reynolds_correction, wageningen_kt, wageningen_kt_corrected, wageningen_kt_reynolds_correction
@@ -15,6 +15,7 @@ __all__ = [
     "BladeSweepEntry",
     "BladeSweepResult",
     "DEFAULT_BLADE_SWEEP",
+    "NoFeasibleDesignError",
     "optimize_design_with_blade_sweep",
     "PopRunResult",
     "advance_coefficient",

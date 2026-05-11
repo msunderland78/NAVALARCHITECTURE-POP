@@ -169,6 +169,32 @@ class HttpApiTests(unittest.TestCase):
         self.assertEqual(context.exception.code, status)
         return json.loads(context.exception.read())
 
+    def test_run_returns_structured_hints_for_infeasible_case(self):
+        data = sample_case()
+        data["mode"] = "optimization"
+        data["diameterMinMeters"] = 0.5
+        data["diameterMaxMeters"] = 0.6
+        data["requiredThrustKn"] = 5000.0
+        data["shipSpeedKnots"] = 5.0
+        data["shaftDepthMeters"] = 0.5
+        request = urllib.request.Request(
+            f"http://127.0.0.1:{self.port}/api/run",
+            data=json.dumps(data).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST"
+        )
+
+        with self.assertRaises(urllib.error.HTTPError) as context:
+            urllib.request.urlopen(request, timeout=30)
+
+        payload = json.loads(context.exception.read())
+        self.assertEqual(context.exception.code, 400)
+        self.assertEqual(payload["error"], "no_feasible_design")
+        self.assertIsInstance(payload["hints"], list)
+        self.assertTrue(payload["hints"])
+        self.assertIsInstance(payload["nearest"], dict)
+        self.assertIn("burrillLoading", payload["nearest"])
+
     def test_import_pop_when_available(self):
         path = PROJECT_ROOT / "POP-OLD/POP1.POP"
         if not path.exists():

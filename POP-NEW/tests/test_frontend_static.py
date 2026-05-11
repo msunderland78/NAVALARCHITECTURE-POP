@@ -112,6 +112,14 @@ class FrontendStaticTests(unittest.TestCase):
         self.assertIn("input.invalid", styles)
         self.assertIn(".field-error", styles)
 
+    def test_frontend_renders_run_error_hints(self):
+        script = (ROOT / "app/frontend/app.js").read_text()
+
+        self.assertIn("renderRunError", script)
+        self.assertIn('"no_feasible_design"', script)
+        self.assertIn("error.hints", script)
+        self.assertIn("error.nearest", script)
+
     def test_print_button_uses_print_label(self):
         html = (ROOT / "app/frontend/index.html").read_text()
         script = (ROOT / "app/frontend/app.js").read_text()

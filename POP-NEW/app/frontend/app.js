@@ -104,11 +104,31 @@ form.addEventListener("submit", async event => {
     statusNode.textContent = `${labelForMode(latestPayload.mode)} Complete`;
   } catch (error) {
     statusNode.textContent = "Run Failed";
-    jsonOutput.textContent = String(error);
+    renderRunError(error);
   } finally {
     validateForm();
   }
 });
+
+function renderRunError(error) {
+  const hints = Array.isArray(error.hints) ? error.hints : [];
+  if (error.code === "no_feasible_design" && (hints.length || error.nearest)) {
+    const warnings = hints.map(h => ({level: "warning", code: "no_feasible_design", message: h}));
+    if (error.nearest) {
+      const n = error.nearest;
+      warnings.push({
+        level: "info",
+        code: "nearest_infeasible",
+        message: `Nearest infeasible candidate: D=${n.diameterMeters} m, P/D=${n.pitchDiameterRatio}, Ae/Ao=${n.expandedAreaRatio}, tau_c=${n.burrillLoading} vs allowable ${n.burrillAllowable}.`
+      });
+    }
+    renderWarnings(warnings);
+    jsonOutput.textContent = `${error.message}\n\nhints:\n  - ${hints.join("\n  - ")}`;
+  } else {
+    renderWarnings(null);
+    jsonOutput.textContent = String(error);
+  }
+}
 
 form.addEventListener("input", () => {
   updateModeFields();
@@ -455,7 +475,11 @@ function markCustomWater() {
 async function readJsonResponse(response) {
   const payload = await response.json();
   if (!response.ok) {
-    throw new Error(payload.message || payload.error || "Request failed");
+    const error = new Error(payload.message || payload.error || "Request failed");
+    error.code = payload.error;
+    error.hints = payload.hints;
+    error.nearest = payload.nearest;
+    throw error;
   }
   return payload;
 }

@@ -4,7 +4,7 @@ from json import JSONDecodeError
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-from pop_core import PopInput, parse_legacy_input, read_legacy_pop_text_bytes, result_payload, run_case
+from pop_core import NoFeasibleDesignError, PopInput, parse_legacy_input, read_legacy_pop_text_bytes, result_payload, run_case
 
 
 FRONTEND_DIR = Path(__file__).resolve().parents[1] / "frontend"
@@ -58,6 +58,14 @@ class PopHttpHandler(BaseHTTPRequestHandler):
             result = run_case(case)
         except RequestTooLarge as error:
             self._json(413, {"error": "request_too_large", "message": str(error)})
+            return
+        except NoFeasibleDesignError as error:
+            self._json(400, {
+                "error": "no_feasible_design",
+                "message": str(error),
+                "hints": error.hints,
+                "nearest": error.nearest
+            })
             return
         except ValueError as error:
             self._json(400, {"error": "invalid_input", "message": str(error)})
