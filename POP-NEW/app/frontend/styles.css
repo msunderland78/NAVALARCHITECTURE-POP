@@ -196,6 +196,18 @@ button:disabled {
   font-weight: 700;
 }
 
+.stale-badge {
+  margin-left: 8px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #fbecd6;
+  color: #6b4a10;
+  border: 1px solid #d6a652;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: help;
+}
+
 .results-grid {
   display: grid;
   grid-template-columns: minmax(260px, 360px) minmax(320px, 1fr);

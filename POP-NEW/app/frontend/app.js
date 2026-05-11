@@ -13,6 +13,7 @@ const bladeSweepSection = document.querySelector("#blade-sweep-section");
 const bladeSweepBody = document.querySelector("#blade-sweep-body");
 const warningsSection = document.querySelector("#warnings-section");
 const warningsList = document.querySelector("#warnings-list");
+const staleBadge = document.querySelector("#stale-badge");
 const WATER_PRESETS = {
   salt_15c: {densityKgM3: 1025.87, kinematicViscosityM2S: 0.00000118831},
   fresh_15c: {densityKgM3: 999.1, kinematicViscosityM2S: 0.000001139}
@@ -101,6 +102,7 @@ form.addEventListener("submit", async event => {
     });
     latestPayload = await readJsonResponse(response);
     renderResults(latestPayload);
+    setStale(false);
     statusNode.textContent = `${labelForMode(latestPayload.mode)} Complete`;
   } catch (error) {
     statusNode.textContent = "Run Failed";
@@ -135,12 +137,17 @@ form.addEventListener("input", () => {
   updateCppBanner();
   renderVerification(readForm());
   validateForm();
+  if (latestPayload) setStale(true);
   renderPropeller({
     diameterMeters: Number(form.elements.initialDiameterMeters.value),
     expandedAreaRatio: Number(form.elements.initialExpandedAreaRatio.value),
     pitchDiameterRatio: Number(form.elements.initialPitchDiameterRatio.value)
   }, Number(form.elements.bladeCount.value));
 });
+
+function setStale(value) {
+  staleBadge.classList.toggle("mode-hidden", !value);
+}
 
 form.elements.mode.addEventListener("change", updateModeFields);
 form.elements.waterKind.addEventListener("change", () => {
@@ -253,6 +260,7 @@ function fillForm(data) {
   form.elements.kinematicViscosityM2S.value = data.water.kinematicViscosityM2S;
   form.elements.burrillBackCavitationPercent.value = data.burrillBackCavitationPercent;
   statusNode.textContent = "Sample Loaded";
+  if (latestPayload) setStale(true);
   updateModeFields();
   updateCppBanner();
   validateForm();

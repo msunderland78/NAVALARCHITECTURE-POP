@@ -120,6 +120,16 @@ class FrontendStaticTests(unittest.TestCase):
         self.assertIn("error.hints", script)
         self.assertIn("error.nearest", script)
 
+    def test_frontend_has_stale_result_indicator(self):
+        html = (ROOT / "app/frontend/index.html").read_text()
+        script = (ROOT / "app/frontend/app.js").read_text()
+        styles = (ROOT / "app/frontend/styles.css").read_text()
+
+        self.assertIn('id="stale-badge"', html)
+        self.assertIn("setStale(true)", script)
+        self.assertIn("setStale(false)", script)
+        self.assertIn(".stale-badge", styles)
+
     def test_print_button_uses_print_label(self):
         html = (ROOT / "app/frontend/index.html").read_text()
         script = (ROOT / "app/frontend/app.js").read_text()
