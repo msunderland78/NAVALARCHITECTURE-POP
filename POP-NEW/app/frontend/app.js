@@ -9,6 +9,8 @@ const runButton = document.querySelector("#run-button");
 const resultMode = document.querySelector("#result-mode");
 const verificationTable = document.querySelector("#verification-table");
 const cppBanner = document.querySelector("#cpp-banner");
+const bladeSweepSection = document.querySelector("#blade-sweep-section");
+const bladeSweepBody = document.querySelector("#blade-sweep-body");
 const WATER_PRESETS = {
   salt_15c: {densityKgM3: 1025.87, kinematicViscosityM2S: 0.00000118831},
   fresh_15c: {densityKgM3: 999.1, kinematicViscosityM2S: 0.000001139}
@@ -184,9 +186,26 @@ function renderResults(payload) {
   ];
   resultTable.innerHTML = rows.map(([name, value]) => `<tr><td>${escapeHtml(name)}</td><td>${escapeHtml(value)}</td></tr>`).join("");
   jsonOutput.textContent = JSON.stringify(payload, null, 2);
-  renderPropeller(rounded, Number(form.elements.bladeCount.value));
+  renderPropeller(rounded, payload.bladeCount ?? Number(form.elements.bladeCount.value));
   renderCurveChart(payload.curves, payload.mode);
   renderChart(rounded);
+  renderBladeSweep(payload.bladeSweep);
+}
+
+function renderBladeSweep(sweep) {
+  if (!sweep || !sweep.entries) {
+    bladeSweepSection.classList.add("mode-hidden");
+    bladeSweepBody.innerHTML = "";
+    return;
+  }
+  bladeSweepSection.classList.remove("mode-hidden");
+  bladeSweepBody.innerHTML = sweep.entries.map(entry => {
+    if (!entry.feasible) {
+      return `<tr class="infeasible-row"><td>${entry.bladeCount}</td><td colspan="5">No feasible design</td></tr>`;
+    }
+    const cls = entry.bladeCount === sweep.bestBladeCount ? "best-row" : "";
+    return `<tr class="${cls}"><td>${entry.bladeCount}</td><td>${entry.diameterMeters}</td><td>${entry.pitchDiameterRatio}</td><td>${entry.expandedAreaRatio}</td><td>${entry.rpm}</td><td>${entry.openWaterEfficiency}</td></tr>`;
+  }).join("");
 }
 
 function renderVerification(input) {

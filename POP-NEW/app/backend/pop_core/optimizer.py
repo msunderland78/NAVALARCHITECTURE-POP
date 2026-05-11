@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from .models import PopInput
 from .solver import DesignEvaluation, evaluate_design_auto_reynolds, passes_burrill_constraint
@@ -8,6 +8,44 @@ from .solver import DesignEvaluation, evaluate_design_auto_reynolds, passes_burr
 class OptimizationResult:
     design: DesignEvaluation
     evaluationCount: int
+
+
+@dataclass(frozen=True)
+class BladeSweepEntry:
+    bladeCount: int
+    result: OptimizationResult | None
+    error: str | None
+
+
+@dataclass(frozen=True)
+class BladeSweepResult:
+    best: OptimizationResult
+    bestBladeCount: int
+    entries: list[BladeSweepEntry]
+    evaluationCount: int
+
+
+DEFAULT_BLADE_SWEEP = (3, 4, 5, 6, 7)
+
+
+def optimize_design_with_blade_sweep(case: PopInput, blade_counts: tuple[int, ...] = DEFAULT_BLADE_SWEEP) -> BladeSweepResult:
+    entries = []
+    best = None
+    best_z = None
+    total = 0
+    for z in blade_counts:
+        try:
+            result = optimize_design(replace(case, bladeCount=z))
+            entries.append(BladeSweepEntry(z, result, None))
+            total += result.evaluationCount
+            if best is None or result.design.openWaterEfficiency > best.design.openWaterEfficiency:
+                best = result
+                best_z = z
+        except ValueError as error:
+            entries.append(BladeSweepEntry(z, None, str(error)))
+    if best is None:
+        raise ValueError("No feasible propeller design found at any blade count")
+    return BladeSweepResult(best, best_z, entries, total)
 
 
 def optimize_design(case: PopInput) -> OptimizationResult:

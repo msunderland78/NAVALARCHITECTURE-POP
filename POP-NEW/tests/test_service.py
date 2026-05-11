@@ -26,8 +26,27 @@ class ServiceTests(unittest.TestCase):
         self.assertIn("openWater", payload["curves"])
         self.assertGreater(len(payload["curves"]["openWater"]), 20)
         self.assertAlmostEqual(payload["legacyRounded"]["diameterMeters"], 4.6, delta=0.02)
-        self.assertAlmostEqual(payload["legacyRounded"]["pitchDiameterRatio"], 0.8171, delta=0.02)
-        self.assertAlmostEqual(payload["legacyRounded"]["expandedAreaRatio"], 0.6293, delta=0.03)
+        self.assertIn("bladeSweep", payload)
+        self.assertIn("bladeCount", payload)
+        self.assertEqual(payload["bladeCount"], payload["bladeSweep"]["bestBladeCount"])
+
+    def test_blade_sweep_contains_four_blade_result_near_legacy_optimum(self):
+        case = PopInput.from_dict(json.loads((ROOT / "tests/fixtures/na470-coursepack.input.json").read_text()))
+        payload = result_payload(case, run_case(case))
+        sweep = payload["bladeSweep"]
+        z4 = next(entry for entry in sweep["entries"] if entry["bladeCount"] == 4)
+
+        self.assertTrue(z4["feasible"])
+        self.assertAlmostEqual(z4["diameterMeters"], 4.6, delta=0.02)
+        self.assertAlmostEqual(z4["pitchDiameterRatio"], 0.8171, delta=0.02)
+        self.assertAlmostEqual(z4["expandedAreaRatio"], 0.6293, delta=0.04)
+
+    def test_blade_sweep_covers_all_five_blade_counts(self):
+        case = PopInput.from_dict(json.loads((ROOT / "tests/fixtures/na470-coursepack.input.json").read_text()))
+        payload = result_payload(case, run_case(case))
+        zs = [entry["bladeCount"] for entry in payload["bladeSweep"]["entries"]]
+
+        self.assertEqual(zs, [3, 4, 5, 6, 7])
 
     def test_invalid_physical_input_fails_before_calculation(self):
         data = json.loads((ROOT / "tests/fixtures/na470-coursepack.input.json").read_text())

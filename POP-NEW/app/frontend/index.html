@@ -100,6 +100,16 @@
             </div>
           </div>
         </div>
+        <div id="blade-sweep-section" class="blade-sweep mode-hidden">
+          <h3>Per blade-count optimum</h3>
+          <p class="blade-sweep-hint">Optimization sweeps Z = 3 through 7 and reports the best of each. The main result above is the global optimum. Best blade count is highlighted.</p>
+          <table>
+            <thead>
+              <tr><th>Z</th><th>D (m)</th><th>P/D</th><th>Ae/Ao</th><th>RPM</th><th>Eta 0</th></tr>
+            </thead>
+            <tbody id="blade-sweep-body"></tbody>
+          </table>
+        </div>
         <pre id="json-output"></pre>
       </section>
     </main>

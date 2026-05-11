@@ -203,6 +203,44 @@ button:disabled {
   padding: 16px;
 }
 
+.blade-sweep {
+  padding: 0 16px 16px;
+}
+
+.blade-sweep h3 {
+  margin: 6px 0;
+}
+
+.blade-sweep-hint {
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: #5b6975;
+}
+
+.blade-sweep table {
+  font-size: 13px;
+}
+
+.blade-sweep th {
+  text-align: left;
+  padding: 6px 6px;
+  border-bottom: 1px solid #cfd6dc;
+}
+
+.blade-sweep td {
+  padding: 5px 6px;
+}
+
+.blade-sweep .best-row {
+  background: #e6f1ec;
+  font-weight: 700;
+}
+
+.blade-sweep .infeasible-row {
+  color: #8a3030;
+  background: #fbecec;
+}
+
 .cpp-banner {
   margin: 14px 16px 0;
   padding: 10px 14px;

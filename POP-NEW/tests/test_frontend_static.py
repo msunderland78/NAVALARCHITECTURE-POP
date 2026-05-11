@@ -76,6 +76,17 @@ class FrontendStaticTests(unittest.TestCase):
         self.assertIn("applyWaterPreset", script)
         self.assertIn("markCustomWater", script)
 
+    def test_frontend_renders_blade_sweep_table(self):
+        html = (ROOT / "app/frontend/index.html").read_text()
+        script = (ROOT / "app/frontend/app.js").read_text()
+        styles = (ROOT / "app/frontend/styles.css").read_text()
+
+        self.assertIn('id="blade-sweep-section"', html)
+        self.assertIn('id="blade-sweep-body"', html)
+        self.assertIn("renderBladeSweep", script)
+        self.assertIn(".blade-sweep", styles)
+        self.assertIn("best-row", styles)
+
     def test_frontend_has_controllable_pitch_banner(self):
         html = (ROOT / "app/frontend/index.html").read_text()
         script = (ROOT / "app/frontend/app.js").read_text()
