@@ -1,0 +1,12 @@
+[project]
+name = "pop"
+version = "1.0.0"
+description = "Propeller Optimization Program for the Web"
+requires-python = ">=3.12"
+# Intentionally no runtime dependencies. The calculation core, OLE Compound
+# File reader, and HTTP server are built on the Python standard library only.
+# Adding a third-party dependency is a deliberate decision; record the reason.
+dependencies = []
+
+[project.urls]
+homepage = "https://github.com/msunderland78/NAVALARCHITECTURE-POP"

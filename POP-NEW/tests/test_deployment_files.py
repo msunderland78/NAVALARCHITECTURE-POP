@@ -67,6 +67,18 @@ class DeploymentFileTests(unittest.TestCase):
         self.assertIn("proxy_pass http://pop_backend", config)
         self.assertIn("client_max_body_size 2m", config)
 
+    def test_pyproject_declares_no_runtime_deps(self):
+        text = (ROOT / "pyproject.toml").read_text()
+
+        self.assertIn("name = \"pop\"", text)
+        self.assertIn("requires-python = \">=3.12\"", text)
+        self.assertIn("dependencies = []", text)
+
+    def test_python_version_pin_present(self):
+        text = (ROOT / ".python-version").read_text().strip()
+
+        self.assertTrue(text.startswith("3.12"))
+
     def test_dockerignore_excludes_old_folders(self):
         dockerignore = (ROOT / "app/.dockerignore").read_text()
 
