@@ -138,12 +138,19 @@ class HttpApiTests(unittest.TestCase):
             method="POST"
         )
 
-        with self.assertRaises(urllib.error.HTTPError) as context:
+        try:
             urllib.request.urlopen(request, timeout=10)
-
-        payload = json.loads(context.exception.read())
-        self.assertEqual(context.exception.code, 413)
-        self.assertEqual(payload["error"], "request_too_large")
+            self.fail("expected an HTTP 413 response")
+        except urllib.error.HTTPError as error:
+            payload = json.loads(error.read())
+            self.assertEqual(error.code, 413)
+            self.assertEqual(payload["error"], "request_too_large")
+        except urllib.error.URLError as error:
+            # On some platforms the server short-circuits to 413 and closes the
+            # socket before urllib finishes sending the 1MB body, so urllib
+            # raises BrokenPipe rather than reading the response. That is still
+            # the correct behavior; the request never reached the calculation.
+            self.assertIsInstance(error.reason, (BrokenPipeError, ConnectionResetError))
 
     def _post_run_expect_error(self, data: dict, status: int) -> dict:
         return self._post_raw_expect_error(json.dumps(data).encode("utf-8"), status)
