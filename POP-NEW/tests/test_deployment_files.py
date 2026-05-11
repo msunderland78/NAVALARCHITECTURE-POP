@@ -9,9 +9,11 @@ class DeploymentFileTests(unittest.TestCase):
     def test_dockerfile_does_not_copy_legacy_folder(self):
         dockerfile = (ROOT / "app/backend/Dockerfile").read_text()
 
-        self.assertIn("python:3.12-slim", dockerfile)
-        self.assertIn("COPY backend", dockerfile)
-        self.assertIn("COPY frontend", dockerfile)
+        self.assertIn("python:3.12.8-slim", dockerfile)
+        self.assertIn("COPY --chown=pop:pop backend", dockerfile)
+        self.assertIn("COPY --chown=pop:pop frontend", dockerfile)
+        self.assertIn("USER pop:pop", dockerfile)
+        self.assertIn("useradd", dockerfile)
         self.assertIn("HEALTHCHECK", dockerfile)
         self.assertIn("/health", dockerfile)
         self.assertNotIn("POP-OLD", dockerfile)
