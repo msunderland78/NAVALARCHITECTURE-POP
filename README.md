@@ -1,6 +1,6 @@
 # Propeller Optimization Program (POP) for the Web
 
-Version 1.0, May 2026
+Version 1.1, May 2026
 
 ## Purpose
 
@@ -43,6 +43,8 @@ Use Optimization when the diameter is allowed to vary within a selected range. P
 
 Optimization is useful during early powering studies when diameter limits are known from aperture, draft, hull clearance, or machinery arrangement, but final `P/D` and `Ae/Ao` have not yet been selected.
 
+In Optimization mode, POP automatically sweeps blade count `Z` from 3 through 7. The result panel shows the global best design plus a per-`Z` comparison table so early-stage blade-count selection becomes an output of the calculation rather than a separate user decision.
+
 ## Input Guidance
 
 Use consistent design-condition values:
@@ -62,7 +64,17 @@ The results table gives the selected propeller particulars and operating point. 
 
 Use the plot to judge whether the operating point sits in a reasonable part of the B-Series curve. Use the table to compare alternatives by diameter, pitch, expanded area ratio, rpm, efficiency, cavitation number, and Reynolds number.
 
-The JSON and CSV exports preserve the numerical result. The PDF export is intended for a Letter-size report page with 1 inch margins.
+Below the result table, POP renders:
+
+- A "Notes" panel that flags tight cavitation margins, low efficiency, extreme RPM, designs pinned at the search boundaries, and the empirical controllable-pitch reduction.
+- A per-`Z` table in Optimization mode that compares the optimum at each blade count, with the global best row highlighted.
+- An "Out of date" badge if you edit any input after a run; it clears when you re-run.
+
+If the optimizer cannot find a feasible design, POP returns a `no_feasible_design` error with structured hints (raise the cavitation limit, widen the diameter range, increase shaft submergence) and the closest infeasible candidate's numbers so you can decide what to change.
+
+The JSON and CSV exports preserve the numerical result. The Print button opens the browser print dialog; choose "Save as PDF" there to produce a Letter-size report with 1 inch margins.
+
+For the calibration sources behind these numbers, open the "Methodology" panel from the top bar.
 
 ## Legacy POP Files
 
@@ -82,6 +94,8 @@ This section uses deployment terms. It is included for users who want to run POP
 - A port number you want people to use in their browser
 
 The server you choose determines the IP address or domain name. POP does not require a fixed hostname, fixed IP address, or fixed public port.
+
+The container runs as an unprivileged user (`pop`, uid 10001), uses a pinned `python:3.12.8-slim` base image, and installs only `numpy` for runtime. NGINX rate-limits `/api/run` and strips its version header.
 
 ### Start POP On The Default Port
 
@@ -185,4 +199,17 @@ Do not commit private keys or certificate files. Local certificate material can 
 
 ## Current Scope
 
-POP 1.0 covers the B-Series preliminary design workflow currently recovered from the legacy POP materials. Additional validation cases should be added if more legacy POP files, printed output sheets, or independent B-Series examples become available.
+POP 1.1 covers the B-Series preliminary design workflow recovered from the legacy POP materials, plus the engineering and product improvements described in `POP-NEW/CLAUDE-REVIEW-PLAN.md`. Highlights since 1.0:
+
+- Reynolds-section chord factor switched to Carlton's published 0.75R value (no longer fitted to one case).
+- Burrill back-cavitation chart digitised from Carlton (2012) Figure 9.21, replacing the previous single-point linear calibration.
+- Optimizer sweeps blade count `Z = 3..7` and reports a per-`Z` comparison table.
+- Optimization is numpy-vectorised; a full blade-sweep run typically completes in about 2 seconds.
+- Result panel surfaces advisory notes, cavitation margin warnings, no-feasible-design hints, and a stale-result badge.
+- Client-side validation mirrors the backend validator with inline field errors.
+- Container runs as a non-root user with a pinned Python base; NGINX adds timeouts, rate limiting on `/api/run`, IPv6, and stripped server tokens.
+- CFB legacy-import parser hardened against malformed input.
+- Continuous integration runs the test suite and a container build check on every push.
+- Methodology disclosure panel in the UI summarises calibration sources.
+
+Additional validation cases should be added if more legacy POP files, printed output sheets, or independent B-Series examples become available.

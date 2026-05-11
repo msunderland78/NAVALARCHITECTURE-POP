@@ -10,22 +10,42 @@ No obvious hardware-lock or dongle dependency was found in the current artifacts
 
 ## Implementation Status
 
-Current status as of May 10, 2026:
+Status as of May 11, 2026. This section reflects the work captured in `POP-NEW/CLAUDE-REVIEW-PLAN.md` and the commit history.
 
-- Evidence preservation is complete for the supplied `POP-OLD` artifacts, including executable inventory, static string findings, OLE `.POP` notes, and Wageningen source notes.
-- The calculation core is implemented in `POP-NEW/app/backend/pop_core` with Wageningen B-series evaluation, thrust solving, Reynolds correction, Burrill cavitation screening, controllable-pitch efficiency reduction, evaluation mode, and optimization mode.
-- Golden regression coverage exists for the NA 470 coursepack case, plus solver, optimizer, import, HTTP API, deployment, and frontend static checks.
-- Legacy `.POP` import is implemented through an OLE Compound Document reader and a label-based converter for the known sample files.
-- The browser UI supports evaluation and optimization modes, mode-specific fields, water-property presets, `.POP` import, JSON/CSV/PDF export, input verification, result tables, a propeller sketch, coefficient bars, and an open-water curve plot with the current operating point.
-- Runtime validation rejects invalid physical inputs before calculation and returns API validation errors as HTTP 400 responses.
-- Container deployment is implemented with a backend Dockerfile, NGINX reverse proxy, `docker-compose.yml`, health checks, and a deployment README. The compose stack has been smoke-tested on `http://127.0.0.1:8080/`.
+### Calculation core
 
-Remaining modernization work should focus on engineering calibration and product hardening:
+- Wageningen B-series `KT` and `KQ` polynomials are implemented at the `RN = 2e6` reference, with the published Reynolds correction applied separately. Coefficients are pinned by landmark unit tests so transcription errors cannot drift the table silently.
+- The sectional Reynolds chord factor follows Carlton's published `0.75R` representative chord (`2.073 * Ae/Ao * D / Z`). The earlier single-case fit (`2.219...`) is gone.
+- The Burrill back-cavitation constraint uses a digitised lookup of the 5 percent and 10 percent allowable thrust-loading lines from Carlton (2012) Figure 9.21, with linear interpolation in `sigma_0.7R` and linear blending between the two lines.
+- The controllable-pitch `0.98` efficiency multiplier from POP-1.5 is preserved, but it is documented and surfaced in the UI as an empirical hub-loss allowance, not a physical model.
+- Optimization mode sweeps `Z` in `{3, 4, 5, 6, 7}` and reports the global best plus a per-`Z` comparison table.
+- The whole hot path (polynomial evaluation, bisection, Reynolds iteration, optimizer search) is vectorised with NumPy. A full blade-sweep run typically completes in about 2 seconds.
+- When the optimizer cannot find a feasible design, it raises a structured error with hints (raise the cavitation limit, widen the diameter range, increase shaft submergence) and the closest infeasible candidate's numbers.
 
-- Add more oracle cases if additional legacy `.POP` files or printed POP outputs become available.
-- Confirm the controllable-pitch 2% efficiency reduction against a legacy oracle case before relying on it for production decisions; the code now implements the behavior visible in the legacy strings.
-- Decide whether a server-side PDF generator is required beyond the current browser print-to-PDF export.
-- Add deployment-specific settings for the final Ubuntu/NGINX host once hostname, TLS, and persistence requirements are known.
+### Backend, API, deployment
+
+- The HTTP API is a stdlib `ThreadingHTTPServer`. `/api/run` returns a structured payload that now includes `bladeCount`, `bladeSweep`, and a `warnings` array of advisory notes.
+- Container image pins `python:3.12.8-slim`, runs as the unprivileged user `pop` (uid 10001), and installs only `numpy` as a runtime dependency.
+- NGINX strips its server token, listens on IPv6, applies request and proxy timeouts, and rate-limits `/api/run` (10/min with a burst of 5).
+- A GitHub Actions workflow runs the full test suite plus a docker image build on every push and pull request.
+- The OLE Compound File legacy-import parser is hardened against malformed input (header size, sector-shift range, sector offsets bounded against EOF, capped name and stream sizes, six dedicated malformed-input tests).
+
+### Frontend
+
+- The UI exposes a Methodology disclosure that summarises the calibration sources, so a non-technical user does not have to read the analysis markdown to understand what the numbers mean.
+- The results panel renders a Notes list (cavitation margin, low efficiency, extreme RPM, boundary-pinned designs, CPP empirical reduction), the per-`Z` table, an "Out of date" badge when inputs change after a run, and a controllable-pitch banner when applicable.
+- Client-side validation mirrors the backend validator (blade count, ratios, positives, cross-field `D Min <= D Max`); invalid fields show inline errors and the Run button stays disabled until clean.
+- The Print button uses the browser print dialog to produce a Letter-size PDF; there is no separate server-side PDF generator.
+
+### Test coverage
+
+- 88 unit and integration tests across `tests/` cover the calculation core, optimizer, legacy parsing, malformed CFB inputs, HTTP API success and error paths, deployment files, and frontend statics.
+
+### Still open
+
+- The controllable-pitch `0.98` multiplier should still be replaced with a hub-ratio-aware model before production CPP work.
+- Additional oracle cases (more legacy `.POP` files or printed POP output sheets) would strengthen the calibration of `RN` and the Burrill chart at points away from the NA 470 sample.
+- TLS termination remains the deployer's responsibility; no host-specific config is shipped.
 
 ## Legacy File Inventory
 

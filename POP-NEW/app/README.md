@@ -2,17 +2,20 @@
 
 This directory contains the Linux-native replacement for the legacy POP desktop application.
 
-Planned layout:
+Layout:
 
-- `backend`: calculation engine and API
-- `frontend`: browser interface
-- `nginx`: deployment configuration
+- `backend/`: Python calculation engine, OLE Compound File legacy importer, and stdlib HTTP API server
+- `frontend/`: vanilla HTML + JS + CSS browser interface (no build step)
+- `nginx/`: reverse proxy configuration used by Docker Compose
 
-The production application must not depend on files from `POP-OLD`.
+The production application does not depend on files from `POP-OLD`.
 
-Run locally without containers:
+Runtime dependencies: Python 3.12 and `numpy~=2.2`. The pinned versions live in `POP-NEW/.python-version` and `POP-NEW/pyproject.toml`.
+
+Run locally without containers (install numpy first):
 
 ```sh
+python3 -m pip install --user "numpy~=2.2"
 PYTHONPATH=POP-NEW/app/backend python3 POP-NEW/app/backend/pop_http.py --host 127.0.0.1 --port 8080
 ```
 
